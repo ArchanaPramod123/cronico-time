@@ -1,0 +1,79 @@
+{% extends "userhome/base.html" %}
+{% load static %}
+{% block content %}
+    
+    <main class="main">
+        <div class="page-header breadcrumb-wrap">
+            <div class="container">
+                <div class="breadcrumb">
+                    <a href="index.html" rel="nofollow">Home</a>
+                    <span></span> Pages
+                    <span></span> Login / Register
+                </div>
+            </div>
+        </div>
+        <section class="pt-150 pb-150">
+            <div class="container">
+                <div class="row justify-content-center align-items-center">
+                    <div class="col-lg-10 m-auto">
+                        <div class="row">
+                            <div class="col-lg-5">
+                                <div class="login_wrap widget-taber-content p-30 background-white border-radius-10 mb-md-5 mb-lg-0 mb-sm-5">
+                                    <div class="padding_eight_all bg-white">
+                                        <div class="heading_s1">
+                                            <h3 class="mb-30">Login</h3>
+                                        </div>
+                                        {% comment %} action='{% url "enter_otp"%} {% endcomment %}
+                                        <form method="post" >
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <input type="text" required="" name="otp" placeholder="Enter otp">
+                                            </div>
+                                            <div class="form-group">
+                                                <button type="submit" class="btn btn-fill-out btn-block hover-up" name="login">Submit</button>
+                                            </div>
+                                            <div class="login_footer form-group">
+                                                {% if remaining_minutes > 0 or remaining_seconds > 0 %}
+                                                    <p id="countdown">
+                                                        OTP expires in {{ remaining_minutes }} minutes and {{ remaining_seconds }} seconds.
+                                                    </p>
+                                                {% else %}
+                                                    <a class="text-muted" href="{% url 'resend_otp' %}">Resend OTP</a>
+                                                {% endif %}
+
+                                            </div>
+                                            
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% comment %} <div class="col-lg-1"></div> {% endcomment %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script>
+        // Set the expiration time in seconds
+        var expirationTime = {{ remaining_minutes }} * 60 + {{ remaining_seconds }};
+
+        // Update the countdown every second
+        var countdown = setInterval(function () {
+            var minutes = Math.floor(expirationTime / 60);
+            var seconds = expirationTime % 60;
+
+            // Display the countdown
+            document.getElementById("countdown").innerHTML = "OTP expires in " + minutes + " minutes and " + seconds + " seconds.";
+
+            // Decrease the remaining time
+            expirationTime--;
+
+            // If the countdown reaches zero, clear the interval
+            if (expirationTime < 0) {
+                clearInterval(countdown);
+            }
+        }, 1000);
+    </script>
+ {% endblock %}
+    

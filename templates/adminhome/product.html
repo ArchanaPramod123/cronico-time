@@ -1,0 +1,110 @@
+{% extends "adminhome/base.html" %}
+{% load static %}
+{% block content %}
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Products List</h2>
+        </div>
+        <div>
+            <a href="#" class="btn btn-light rounded font-md">Export</a>
+            <a href="#" class="btn btn-light rounded  font-md">Import</a>
+            <a href="{% url 'admin_product_add'%}" class="btn btn-primary btn-sm rounded">Add Product</a>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <header class="card-header">
+            <div class="row align-items-center">
+                <div class="col col-check flex-grow-0">
+                    <div class="form-check ms-2">
+                        <input class="form-check-input" type="checkbox" value="">
+                    </div>
+                </div>
+                <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
+                    <select class="form-select">
+                        <option selected>All category</option>
+                        <option>women's</option>
+                        <option>men's</option>
+                        <option>unisex</option>
+                    </select>
+                </div>
+                <div class="col-md-2 col-6">
+                    <input type="date" value="02.05.2021" class="form-control">
+                </div>
+                <div class="col-md-2 col-6">
+                    <select class="form-select">
+                        <option selected>Status</option>
+                        <option>Active</option>
+                        <option>Disabled</option>
+                        <option>Show all</option>
+                    </select>
+                </div>
+            </div>
+        </header> <!-- card-header end// -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Is available</th>
+                        <th>image</th>
+                        <th>price</th>
+                        <th class="text-end"> Action </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for obj in item %}
+                    <tr>
+                        <td width="40%">
+                            <a href="#" class="itemside">
+                                <div class="left">
+                                    {% comment %} <img src="{% static 'assets1/imgs/people/im.png' %}" class="img-sm img-avatar" alt="Userpic"> {% endcomment %}
+                                </div>
+                                <div class="info pl-3">
+                                    <h6 class="mb-0 title">{{obj.product_name}}</h6>
+                                    
+                                </div>
+                            </a>
+                        </td>
+                       
+                        <td>{{obj.is_available}}</td>
+                        <td >
+                            {% comment %} <a href="#" class="btn btn-sm btn-brand rounded font-sm mt-15">block</a> {% endcomment %}
+                            {% if obj.productattribute_set.first.image %}
+                            <img src="{{ obj.productattribute_set.first.image.url }}" class="img-sm img-thumbnail" alt="Item">
+                            {% else %}
+                                <p>No image available</p>
+                            {% endif %}
+                        </td>
+                        <td >
+                            {% if obj.productattribute_set.first.price %}
+                        <span>${{ obj.productattribute_set.first.price }}</span>               
+                        {% else %}
+                        <p>No Price available</p>
+                        {% endif %}
+                        </td>
+                        <td class="col-lg-2 col-sm-2 col-4 col-action text-end">
+                            <a href="{% url 'admin_product_edit' obj.id %}" class="btn btn-sm font-sm rounded btn-brand">
+                                <i class="material-icons md-edit"></i> Edit
+                            </a>
+                            <form method="post" action="{% url 'admin_product_delete' obj.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="is_deleted" value="on">
+                                <button type="submit" class="btn btn-sm font-sm btn-light rounded">
+                                    <i class="material-icons md-delete_forever"></i> Delete
+                                </button>
+                            </form>
+                            <td>
+    
+                    </tr>
+                    {% endfor %}
+                    
+                    
+                </tbody>
+ 
+        
+        </table> <!-- table-responsive.// -->
+    </div> <!-- card end// -->
+   
+</section>
+{% endblock %}

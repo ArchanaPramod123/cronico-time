@@ -1,0 +1,177 @@
+{% extends 'userhome/base.html'%}
+{% load static %}
+{% block content %}
+
+<main class="main" id="cartList">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Shop
+                <span></span> Your Cart({{totalitems}})
+            </div>
+        </div>
+    </div>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table shopping-summery text-center clean">
+                            <thead>
+                                <tr class="main-heading">
+                                    <th scope="col">Image</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Quantity</th>
+                                    <th scope="col">Subtotal</th>
+                                   
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product_id,item in cart_data.items %}
+                                <tr>
+                                    <td class="image product-thumbnail"><img src="{{ item.image }}" alt="{{item.image}}">
+                                    {% comment %} <p><a href="{{ item.name|slugify }}/{{ product_id }}">{{item.name}}</a></p></td> {% endcomment %}
+                                     <p><a href="/deatils/{{item.id}}/{{product_id}}">{{ item.product.product_name }}</a></p></td>
+
+                                    <td class="product-des product-name">
+                                        <h5 class="product-name"><a href="shop-product-right.html">{{ item.name }}</a></h5>
+                                        <p class="font-xs">{{item.description}}
+                                        </p>
+                                    </td>
+                                    <td class="price" data-title="Price"><span>{{ item.price }} </span></span></td>
+                                    <td class="text-center" data-title="Stock"> 
+                                        
+                                        <input type="number" class="product-qty-{{product_id}}" min="1" value="{{item.qty}}" oninput="updateAddToCartButton()" style="vertical-align: bottom;"/>
+                                        
+                                    </td>
+                                    <td class="text-right" data-title="Cart">
+                                        <span>${% widthratio item.price 1 item.qty%}</span>
+                                    </td>
+                                    <td class="action update-item" data-item="{{product_id }}"  id="addToCartBtn" onclick="addToCart()" ><i class="fi-rs-shuffle"></i></td>
+                                    <td class="action delete-item" data-item="{{product_id }}" data-title="Remove"><i class="fi-rs-trash"></i></td>
+                                </tr>
+                                {% endfor %}
+                                
+                               
+                                
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="cart-action text-end">
+                        {% comment %} <a class="btn  mr-10 mb-sm-15"><i class="fi-rs-shuffle mr-10"></i>Update Cart</a> {% endcomment %}
+                        <a class="btn" href="{% url 'shop'%}"><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
+                    </div>
+                    <div class="divider center_icon mt-50 mb-50"><i class="fi-rs-fingerprint"></i></div>
+                    <div class="row mb-50">
+                        <div class="col-lg-6 col-md-12">
+                            <div class="heading_s1 mb-3">
+                                <h4>Calculate Shipping</h4>
+                            </div>
+                            <p class="mt-15 mb-30">Flat rate: <span class="font-xl text-brand fw-900">5%</span></p>
+                            <form class="field_form shipping_calculator">
+                                <div class="form-row">
+                                    <div class="form-group col-lg-12">
+                                        <div class="custom_select">
+                                            <select class="form-control select-active">
+                                                <option value="">Choose a option...</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row row">
+                                    <div class="form-group col-lg-6">
+                                        <input required="required" placeholder="State / Country" name="name" type="text">
+                                    </div>
+                                    <div class="form-group col-lg-6">
+                                        <input required="required" placeholder="PostCode / ZIP" name="name" type="text">
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-lg-12">
+                                        <button class="btn  btn-sm"><i class="fi-rs-shuffle mr-10"></i>Update</button>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="mb-30 mt-50">
+                                <div class="heading_s1 mb-3">
+                                    <h4>Apply Coupon</h4>
+                                </div>
+                                <div class="total-amount">
+                                    <div class="left">
+                                        <div class="coupon">
+                                            <form action="#" target="_blank">
+                                                <div class="form-row row justify-content-center">
+                                                    <div class="form-group col-lg-6">
+                                                        <input class="font-medium" name="Coupon" placeholder="Enter Your Coupon">
+                                                    </div>
+                                                    <div class="form-group col-lg-6">
+                                                        <button class="btn  btn-sm"><i class="fi-rs-label mr-10"></i>Apply</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <div class="border p-md-4 p-30 border-radius cart-totals">
+                                <div class="heading_s1 mb-3">
+                                    <h4>Cart Totals</h4>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                             <tr>
+                                                <td class="cart_total_label">Total Amount</td>
+                                                <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">${{ total_amt }}</span></td>
+                                            </tr>
+                                           
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% if totalitems %}
+                                <a href="{% url 'checkout'%}" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script>
+    function updateAddToCartButton(inputField) {
+        var productId = inputField.classList[0].split('-')[2];
+        var addToCartBtn = document.getElementById('addToCartBtn_' + productId);
+        var quantity = parseInt(inputField.value, 10);
+    
+        if (quantity > 0) {
+            addToCartBtn.style.display = 'inline-block';
+        } else {
+            addToCartBtn.style.display = 'none';
+        }
+    }
+    
+    function addToCart(productId) {
+        var inputField = document.querySelector('.product-qty-' + productId);
+        var quantity = parseInt(inputField.value, 10);
+    
+        if (quantity <= 0) {
+            // Hide the button for negative quantity
+            var addToCartBtn = document.getElementById('addToCartBtn_' + productId);
+            addToCartBtn.style.display = 'none';
+    
+            // Display an error message or take appropriate action
+            alert('Please enter a valid quantity.');
+            return;
+        }
+    
+        // Your existing addToCart logic goes here
+        console.log('Adding to cart...');
+    }
+    </script>
+{% endblock %}

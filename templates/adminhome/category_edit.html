@@ -1,0 +1,45 @@
+{% extends "adminhome/base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Update Categories</h2>
+            
+        </div>
+        <div>
+            <input type="text" placeholder="Search Categories" class="form-control bg-white">
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-5">
+                    <form method='post' action='{% url "admin_category_edit" obj.id %}'>
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="product_name" class="form-label">Name</label>
+                            <input type="text" placeholder="Type here" name='name' value={{obj.category_name}} class="form-control" id="product_name" />
+                        </div>
+
+                        <div class="d-grid">
+                            <button class="btn btn-primary">update category</button>
+                        </div>
+                    </form>
+
+                    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+                    <script>
+                        $(document).ready(function () {
+                            $('#product_name').on('input', function () {
+                                var name = $(this).val();
+                                var slug = name.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
+                                $('#product_slug').val(slug);
+                            });
+                        });
+                    </script>
+                </div>
+        </div> <!-- card body .// -->
+    </div> <!-- card .// -->
+</section> <!-- content-main end// -->
+{% endblock %}

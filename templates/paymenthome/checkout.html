@@ -1,0 +1,173 @@
+{% extends 'userhome/base.html'%}
+{% load static %}
+{% block content %}
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Shop
+                <span></span> Checkout
+            </div>
+        </div>
+    </div>
+    <script>
+        function submitForm() {
+            // Validate the form fields or perform any necessary checks
+            var name = document.getElementsByName('name')[0].value;
+            var address = document.getElementsByName('address')[0].value;
+            var phone = document.getElementsByName('phone')[0].value;
+            var district = document.getElementsByName('district')[0].value;
+            var pincode = document.getElementsByName('pincode')[0].value;
+        
+            // Example: Check if the name field is empty
+            if (name.trim() === '') {
+                alert('Please enter your full name.');
+                return false; // Prevent form submission
+            }
+        
+            // Add more validation checks as needed
+        
+            // If everything is okay, submit the form
+            document.forms['billingForm'].submit();
+        }
+        </script>
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="toggle_info">
+                        <span><i class="fi-rs-label mr-10"></i><span class="text-muted">Have a coupon?</span> <a href="#coupon" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to enter your code</a></span>
+                    </div>
+                    <div class="panel-collapse collapse coupon_form " id="coupon">
+                        <div class="panel-body">
+                            <p class="mb-30 font-sm">If you have a coupon code, please apply it below.</p>
+                            <form method="post">
+                                <div class="form-group">
+                                    <input type="text" placeholder="Enter Coupon Code...">
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn  btn-md" name="login">Apply Coupon</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <div class="divider mt-50 mb-50"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-25">
+                        <h4>Billing Details</h4>
+                    </div>
+                    <form method="post" action="{% url 'checkout' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="users" value="{{ request.user.id }}">
+                       
+                        
+                        <div class="form-group">
+                            <input type="text" required="" class="form-control" name="name" placeholder="Full name *">
+                            {{ form.name.label_tag }}
+                            {{ form.name }}
+                            <small class="text-danger">{{ form.name.errors }}</small>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" required="" class="form-control" name="address" placeholder="address *">
+                            {{ form.address.label_tag }}
+                            {{ form.address }}
+                            <small class="text-danger">{{ form.address.errors }}</small>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" required="" class="form-control" name="phone" placeholder="phone *">
+                            {{ form.phone.label_tag }}
+                            {{ form.phone }}
+                            <small class="text-danger">{{ form.phone.errors }}</small>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" required="" class="form-control" name="district" placeholder="district *">
+                            {{ form.district.label_tag }}
+                            {{ form.district }}
+                            <small class="text-danger">{{ form.district.errors }}</small>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" required="" class="form-control" name="pincode" placeholder="pincode *">
+                            {{ form.pincode.label_tag }}
+                            {{ form.pincode }}
+                            <small class="text-danger">{{ form.pincode.errors }}</small>
+                        </div>     
+                        <div class="form-group mb-30">
+                            <button class="btn btn-fill-out btn-block mt-30">Submit</button>
+                        </div>
+                    </form>
+                    <form method="post" action="{% url 'checkout' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="use_existing_address" value="true">
+                       
+                        <div class="form-group">
+                            <label for="existing_address">Select Existing Address:</label>
+                            <select class="form-control" name="existing_address" id="existing_address">
+                                {% for address in user_addresses %}
+                                    <option value="{{ address.id }}">{{ address.name }} - {{ address.address }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+    
+                        <div class="form-group mb-30">
+                            <button class="btn btn-fill-out btn-block mt-30">Use Existing Address</button>
+                        </div>
+                </div>
+                
+                
+                <div class="col-md-6">
+                    <div class="order_review">
+                        <div class="mb-20">
+                            <h4>Your Orders</h4>
+                        </div>
+                        <div class="table-responsive order_table text-center">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2">Product</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for product_id,item in cart_data.items%}
+                                    <tr>
+                                        <td class="image product-thumbnail"><img src="{{ item.image}}"  alt="#"></td>
+                                        <td>
+                                            <h5><a href="shop-product-full.html">{{ item.name }}</a></h5> <span class="product-qty">x {{item.qty}}</span>
+                                        </td>
+                                        <td>${%widthratio item.price 1 item.qty%}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    
+                                   
+                                    <tr>
+                                        <th>Total</th>
+                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{ total_amt }}</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                        {% comment %} <div class="payment_method">
+                            <div class="mb-25">
+                                <h5>Payment</h5>
+                            </div>
+                            <div class="payment_option">
+                                
+                            </div>
+                        </div> {% endcomment %}
+                        {% comment %} <a href="#" class="btn btn-fill-out btn-block mt-30">Cash on Devilvary</a> {% endcomment %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

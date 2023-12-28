@@ -1,0 +1,52 @@
+{% extends "adminhome/base.html" %}
+{% load static %}
+{% block content %}
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>amount</th>
+                    <th>status</th>
+                    <th>date</th>
+                    <th>product status</th>
+                    {% comment %} <th class="text-end"> Action </th> {% endcomment %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in order %}
+                <tr>
+                    <td width="40%">
+                        <a href="#" class="itemside">
+                            <div class="left">
+                            </div>
+                            <div class="info pl-3">
+                                <h6 class="mb-0 title">{{obj.user}}</h6>
+                                <small class="text-muted">userid: {{obj.id}}</small>
+                            </div>
+                        </a>
+                    </td>
+                    <td>{{ obj.total_amt }}</td>
+                    <td>{{obj.paid_status}}</span></td>
+                    <td>{{obj.order_date}}</td>
+                    <td>{{obj.product_status}}</td>
+
+                </tr>
+                {% endfor %}
+                
+                
+            </tbody>
+        </table> <!-- table-responsive.// -->
+        {% if messages %}
+        <div class="alert alert-danger">
+            {% for message in messages %}
+            <strong>{{ message }}</strong><br>
+            {% endfor %}
+        </div>
+        {% endif %}
+                                                
+    </div>
+</div> <!-- card-body end// -->
+</div> <!-- card end// -->
+{% endblock %}

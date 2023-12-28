@@ -1,0 +1,51 @@
+{% extends "adminhome/base.html" %}
+{% load static %}
+{% block content %}
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Registered</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for obj in user %}
+                <tr>
+                    <td width="40%">
+                        <a href="#" class="itemside">
+                            <div class="left"></div>
+                            <div class="info pl-3">
+                                <h6 class="mb-0 title">{{ obj.username }}</h6>
+                                <small class="text-muted">UserID: {{ obj.id }}</small>
+                            </div>
+                        </a>
+                    </td>
+                    <td>{{ obj.email }}</td>
+                    <td>{{ obj.phone }}</td>
+                    <td>{{ obj.date_joined }}</td>
+                    <td class="text-end">
+                        {% if obj.is_active %}
+                            <a href="{% url 'block_user' obj.id %}" class="btn btn-sm btn-danger rounded font-sm mt-15">Block</a>
+                        {% else %}
+                            <a href="{% url 'block_user' obj.id %}" class="btn btn-sm btn-warning rounded font-sm mt-15">Unblock</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if messages %}
+                                            <div class="alert alert-danger">
+                                                {% for message in messages %}
+                                                    <strong>{{ message }}</strong><br>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+</div>
+{% endblock %}

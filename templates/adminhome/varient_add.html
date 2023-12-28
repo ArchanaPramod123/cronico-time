@@ -1,0 +1,58 @@
+{% extends "adminhome/base.html" %}
+{% load static %}
+{% block content %}
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Add varient</h2>
+            
+        </div>
+        <div>
+            <input type="text" placeholder="Search Categories" class="form-control bg-white">
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{% url "admin_varient_add" %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                
+                <div class="row">
+                    <div class="col-lg-5">
+                        {{ form.as_p }}
+                        <!-- Repeat the pattern for other form fields -->
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-primary">Add varient</button>
+                    </div>
+                </div>
+            </form>
+
+
+                    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+                    <script>
+                        $(document).ready(function () {
+                            $('#product_name').on('input', function () {
+                                var name = $(this).val();
+                                var slug = name.toLowerCase().replace(/\s+/g, '-').replace(/'/g, '');
+                                $('#product_slug').val(slug);
+                            });
+                        });
+                        function addImageInput() {
+                            var container = document.getElementById('additional-images-container');
+                            var input = document.createElement('input');
+                            input.type = 'file';
+                            input.name = 'images';
+                            input.className = 'form-control mt-2';
+                            input.multiple = true;
+                            container.appendChild(input);
+                        }
+                    
+                    </script>
+                
+            </div>
+        </div> <!-- card body .// -->
+    </div> <!-- card .// -->
+</section>
+{% endblock %}    

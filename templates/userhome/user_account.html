@@ -1,0 +1,207 @@
+{% extends 'userhome/base.html'%}
+{% load static %}
+{% block content %}
+<main class="main">
+    <div class="page-header breadcrumb-wrap">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="index.html" rel="nofollow">Home</a>
+                <span></span> Pages
+                <span></span> Account
+            </div>
+        </div>
+    </div>
+    <section class="pt-150 pb-150">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 m-auto">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="dashboard-menu">
+                                <ul class="nav flex-column" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="dashboard-tab" data-bs-toggle="tab" href="#dashboard" role="tab" aria-controls="dashboard" aria-selected="false"><i class="fi-rs-settings-sliders mr-10"></i>Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="orders-tab" data-bs-toggle="tab" href="#orders" role="tab" aria-controls="orders" aria-selected="false"><i class="fi-rs-shopping-bag mr-10"></i>Orders</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="track-orders-tab" data-bs-toggle="tab" href="#track-orders" role="tab" aria-controls="track-orders" aria-selected="false"><i class="fi-rs-shopping-cart-check mr-10"></i>Track Your Order</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="address-tab" data-bs-toggle="tab" href="#address" role="tab" aria-controls="address" aria-selected="true"><i class="fi-rs-marker mr-10"></i>My Address</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="account-detail-tab" data-bs-toggle="tab" href="#account-detail" role="tab" aria-controls="account-detail" aria-selected="true"><i class="fi-rs-user mr-10"></i>Account details</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="page-login-register.html"><i class="fi-rs-sign-out mr-10"></i>Logout</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="tab-content dashboard-content">
+                                <div class="tab-pane fade active show" id="dashboard" role="tabpanel" aria-labelledby="dashboard-tab">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Hello {{user_data.first_name}} </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <p>From your account dashboard. you can easily check &amp; view your <a href="#">recent orders</a>, manage your <a href="#">shipping and billing addresses</a> and <a href="#">edit your password and account details.</a></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="orders" role="tabpanel" aria-labelledby="orders-tab">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Your Orders</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                            
+                                                        <table class="table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Order ID</th>
+                                                                    <th>Total Amount</th>
+                                                                    <th>Order Date</th>
+                                                                    <!-- Add more columns if needed -->
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for order in order_history %}
+                                                                <tr>
+                                                                    <td>{{ order.id }}</td>
+                                                                    <td>${{ order.total_amt }}</td>
+                                                                    <td>{{ order.order_date }}</td>
+                                                                    <td>
+                                                                        <a href="#order-details-{{ order.id }}" data-bs-toggle="collapse">View Details</a>
+                                                                        <button class="btn btn-danger btn-sm" onclick="confirmCancelOrder('{{ order.id }}')">Cancel Order</button>
+                                                                        <div id="order-details-{{ order.id }}" class="collapse">
+                                                                            <h6>Order Items</h6>
+                                                                            <ul>
+                                                                                {% for item in order.cartorderitems_set.all %}
+                                                                                    <li>
+                                                                                        <strong>{{ item.item }}</strong>
+                                                                                        <br>
+                                                                                        Quantity: {{ item.qty }}
+                                                                                        <br>
+                                                                                        Price: ${{ item.price }}
+                                                                                        <br>
+                                                                                        Total: ${{ item.total }}
+                                                                                        <br>
+                                                                                    </li>
+                                                                                {% endfor %}
+                                                                            </ul>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="track-orders" role="tabpanel" aria-labelledby="track-orders-tab">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Orders tracking</h5>
+                                        </div>
+                                        <div class="card-body contact-from-area">
+                                            <p>To track your order please enter your OrderID in the box below and press "Track" button. This was given to you on your receipt and in the confirmation email you should have received.</p>
+                                            <div class="row">
+                                                <div class="col-lg-8">
+                                                    <form class="contact-form-style mt-30 mb-50" action="#" method="post">
+                                                        <div class="input-style mb-20">
+                                                            <label>Order ID</label>
+                                                            <input name="order-id" placeholder="Found in your order confirmation email" type="text" class="square">
+                                                        </div>
+                                                        <div class="input-style mb-20">
+                                                            <label>Billing email</label>
+                                                            <input name="billing-email" placeholder="Email you used during checkout" type="email" class="square">
+                                                        </div>
+                                                        <button class="submit submit-auto-width" type="submit">Track</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="address" role="tabpanel" aria-labelledby="address-tab">
+                                    <div class="row">
+                                        {% for address in user_address %}
+                                        <div class="col-lg-6">
+                                            <div class="card mb-3 mb-lg-0">
+                                                <div class="card-header">
+                                                    <h5 class="mb-0">Billing Address</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p>{{ address.name}}</p>
+                                                    <p>{{ address.address}}</p>
+                                                    <p>{{ address.district}}</p>
+                                                    <p>{{ address.pincode}}</p>
+                                                    {% comment %} <address>{{ address.name}},{{ address.address}},{{ address.district}},{{ address.pincode}}</address> {% endcomment %}
+                                                    <p>{{ address.phone}}</p>
+                                                    {% comment %} <a href="#" class="btn-small">Edit</a> {% endcomment %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="account-detail" role="tabpanel" aria-labelledby="account-detail-tab">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5>Account Details</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            
+                                            <form method="post" name="enq">
+                                                <div class="row">
+                                                    <div class="form-group col-md-6">
+                                                        <label>First Name <span class="required">*</span></label>
+                                                        <input required="" class="form-control square" name="name" value="{{user_data.first_name}}" type="text">
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label>Last Name <span class="required">*</span></label>
+                                                        <input required="" class="form-control square"value="{{user_data.last_name}}" name="phone">
+                                                    </div>
+                                                    <div class="form-group col-md-12">
+                                                        <label>phone <span class="required">*</span></label>
+                                                        <input required="" class="form-control square" name="dname" value="{{user_data.phone}}" type="text">
+                                                    </div>
+                                                    <div class="form-group col-md-12">
+                                                        <label>Email Address <span class="required">*</span></label>
+                                                        <input required="" class="form-control square" name="email" value="{{user_data.email}}" type="email">
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                            <a href="{% url 'change_password'%}">Do you want to change the password ?</a>
+                                    
+
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+<script>
+    function confirmCancelOrder(orderId) {
+        if (confirm("Are you sure you want to cancel this order?")) {
+            window.location.href = "{% url 'cancel_order' %}?order_id=" + orderId;
+        }
+    }
+</script>
+{% endblock %}

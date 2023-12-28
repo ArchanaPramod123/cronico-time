@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+{% load static %}
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/imgs/theme/favicon.svg'%}">
+    <!-- Template CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/main.css'%}">
+    <title>CRONICO - Time of Future</title>
+</head>
+
+<body>
+    <header class="header-area header-style-5">
+        <div class="header-top header-top-ptb-1 d-none d-lg-block">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-xl-3 col-lg-4">
+                        <div class="header-info">
+                            <ul>
+                                <li><i class="fi-rs-smartphone"></i> <a href="#">(+01) - 2345 - 6789</a></li>
+                                <li><i class="fi-rs-marker"></i><a  href="page-contact.html">Our location</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-xl-6 col-lg-4">
+                        <div class="text-center">
+                            <div id="news-flash" class="d-inline-block">
+                                <ul>
+                                    <li>Get great devices up to 50% off <a href="shop-grid-right.html">View details</a></li>
+                                    <li>Supper Value Deals - Save more with coupons</li>
+                                    <li>Trendy 25silver jewelry, save up 35% off today <a href="shop-grid-right.html">Shop now</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-4">
+                        <div class="header-info header-info-right">
+                            <ul>
+                                {% comment %} <li>
+                                    <a class="language-dropdown-active" href="#"> <i class="fi-rs-world"></i> Account <i class="fi-rs-angle-small-down"></i></a>
+                                    <ul class="language-dropdown">
+                                        <li><a href="#">English</a></li>
+                                        <li><a href="{% url 'user_logout'%}">Logout</a></li>
+                                    </ul>
+                                </li> {% endcomment %}
+                                {% comment %} <li><i class="fi-rs-user"></i><a href="{% url 'user_login' %}">Log In / Sign Up</a></li> {% endcomment %}
+                                <li>
+
+                             
+                                    {% if user.is_authenticated %}
+                                        <i class="fi-rs-user"></i>
+                                        <a href="#" class="language-dropdown-active">
+                                            {{ user.username }} <i class="fi-rs-angle-small-down"></i>
+                                        </a>
+                                        <ul class="language-dropdown">
+                                            <li><a href="{%url 'user_account'%}">My Account</a></li>
+                                            <li><a href="{% url 'user_logout' %}">Logout</a></li>
+                                        </ul>
+                                    {% else %}
+                                        <i class="fi-rs-user"></i>
+                                        <a href="{% url 'user_login'%}">Log In / Sign Up</a>
+                                    {% endif %}
+                                </li>
+                                
+                                {% comment %} <li><i class="fi-rs-user"></i><a href={% url 'user_login'%}>Log In / Sign Up</a></li> {% endcomment %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="header-bottom sticky-bar sticky-white-bg">
+            <div class="container">
+                <div class="header-wrap header-space-between position-relative">
+                    <div class="logo logo-width-1">
+                        <a href="{% url 'user_index'%}"><img src="{% static 'assets/imgs/theme/lo1.png'%}" alt="logo"></a>
+                    </div>
+                    <div class="main-menu main-menu-grow main-menu-padding-1 main-menu-lh-1 main-menu-mrg-1 hm3-menu-padding d-none d-lg-block hover-boder">
+                        <nav>
+                            <ul>
+                                <li><a class="active" href="{% url 'user_index'%}">Home <i class="fi-rs-angle-down"></i></a>
+                                    
+                                </li>
+                                <li><a href="{% url 'shop'%}">Shop <i class="fi-rs-angle-down"></i></a>
+                                   
+                                </li>
+                                {% comment %} <li class="position-static"><a href="#">Mega <i class="fi-rs-angle-down"></i></a>
+                                    
+                                </li> {% endcomment %}
+                             
+                                {% comment %} <li><a href="#">Pages <i class="fi-rs-angle-down"></i></a> {% endcomment %}
+                                    {% comment %} <ul class="sub-menu">
+                                        <li><a href="page-about.html">About Us</a></li>
+                                        <li><a href="page-contact.html">Contact</a></li>
+                                        <li><a href="page-account.html">My Account</a></li>
+                                        <li><a href="page-login-register.html">login/register</a></li>
+                                        <li><a href="page-purchase-guide.html">Purchase Guide</a></li>
+                                        <li><a href="page-privacy-policy.html">Privacy Policy</a></li>
+                                        <li><a href="page-terms.html">Terms of Service</a></li>
+                                        <li><a href="page-404.html">404 Page</a></li>
+                                    </ul> {% endcomment %}
+                                {% comment %} </li> {% endcomment %}
+                                {% comment %} <li>
+                                    <a href="page-contact.html">Contact</a>
+                                </li> {% endcomment %}
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="header-action-right">
+                        <div class="search-style-2">
+                            <form action="/search">
+                                 {% comment %} <button class="select-active">
+                                    Search {% endcomment %}
+                                    {% comment %} <option>Search in</option>
+                                    <option>Women's Clothing</option>
+                                    <option>Men's Clothing</option>
+                                    <option>Cellphones</option>
+                                    <option>Computer & Office</option>
+                                    <option>Consumer Electronics</option>
+                                    <option>Jewelry & Accessories</option>
+                                    <option>Home & Garden</option>
+                                    <option>Luggage & Bags</option>
+                                    <option>Shoes</option>
+                                    <option>Mother & Kids</option> {% endcomment %}
+                                 {% comment %} </button>  {% endcomment %}
+                                <input type="text" name="q" class="form-control" placeholder="Search ">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="btton-addon2">Search</button>
+                                </div>
+                            </form>
+                        </div> 
+                        {% comment %} <div class="collapse navbar-collapse" id="navbarNav">
+                            <form class="form-inline my-2 my-lg-0" action="">
+                                <input type="text" class="form-control" placeholder="Search " aria-label="Recipient's username" aria-describedby="button-addon2">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" id="btton-addon2">Button</button>
+                                </div>
+
+                            </form>
+
+                        </div> {% endcomment %}
+                        <div class="header-action-2">
+                            <div class="header-action-icon-2">
+                                <a href="shop-wishlist.html">
+                                    <img class="svgInject" alt="Evara" src="{% static 'assets/imgs/theme/icons/icon-heart.svg'%}">
+                                    <span class="pro-count blue">4</span>
+                                </a>
+                            </div>
+                            <div class="header-action-icon-2">
+                                <a class="mini-cart-icon " href="{% url 'cart'%}">
+                                    <img alt="Evara" src="{% static 'assets/imgs/theme/icons/icon-cart.svg'%}">
+                                    <span class="pro-count blue" class="cart-list">{{request.session.cartdata|length}}</span>
+                                </a>
+                                {% comment %} <div class="cart-dropdown-wrap cart-dropdown-hm2">
+                                    <ul>
+                                        <li>
+                                            <div class="shopping-cart-img">
+                                                <a href="shop-product-right.html"><img alt="Evara" src="{% static 'assets/imgs/shop/thumbnail-3.jpg'%}"></a>
+                                            </div>
+                                            <div class="shopping-cart-title">
+                                                <h4><a href="shop-product-right.html">Plain Striola Shirts</a></h4>
+                                                <h3><span>1 × </span>$800.00</h3>
+                                            </div>
+                                            <div class="shopping-cart-delete">
+                                                <a href="#"><i class="fi-rs-cross-small"></i></a>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="shopping-cart-img">
+                                                <a href="shop-product-right.html"><img alt="Evara" src="{% static 'assets/imgs/shop/thumbnail-1.jpg'%}"></a>
+                                            </div>
+                                            <div class="shopping-cart-title">
+                                                <h4><a href="shop-product-right.html">Macbook Pro 2022</a></h4>
+                                                <h3><span>1 × </span>$3200.00</h3>
+                                            </div>
+                                            <div class="shopping-cart-delete">
+                                                <a href="#"><i class="fi-rs-cross-small"></i></a>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                    <div class="shopping-cart-footer">
+                                        <div class="shopping-cart-total">
+                                            <h4>Total <span>$4000.00</span></h4>
+                                        </div>
+                                        <div class="shopping-cart-button">
+                                            <a href="shop-cart.html">View cart</a>
+                                            <a href="shop-checkout.html">Checkout</a>
+                                        </div>
+                                    </div>
+                                </div> {% endcomment %}
+                            </div>
+                            <div class="header-action-icon d-block d-lg-none">
+                                <div class="burger-icon">
+                                    <span class="burger-icon-top"></span>
+                                    <span class="burger-icon-mid"></span>
+                                    <span class="burger-icon-bottom"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>

@@ -1,0 +1,128 @@
+{% extends 'userhome/base.html'%}
+{% load static %}
+{% block content %}
+    <!-- Quick view -->
+    
+                <!--End nav-tabs-->
+                
+                <div class="tab-content wow fadeIn animated" id="myTabContent">
+                    <div class="tab-pane fade show active" id="tab-one" role="tabpanel" aria-labelledby="tab-one">
+                        <div class="row product-grid-4">
+                            <h3>Search for result {{request.GET.q}}
+                            </h3>
+                            {% for product in data %}
+                            <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                <div class="product-cart-wrap mb-30">
+                                    <div class="product-img-action-wrap">
+                                        <div class="product-img product-img-zoom">
+                                            
+                                            {% comment %} <a href="{% url 'product_details' product_name=product.product_name id=product.id %}"> {% endcomment %}
+                                            <a href="{% url 'product_details' category_id=product.category.id product_id=product.id %}"> 
+                                                <img class="default-img" src="{{ product.productattribute_set.first.image.url }}" alt="product image">
+                                                {% comment %} <img class="hover-img" src="{{ product.product_image1.url }}" alt=""> {% endcomment %}
+                                            </a>
+                                        </div>
+                                        <div class="product-action-1">
+                                            <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-eye"></i></a>
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
+                                            <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
+                                        </div>
+                                        {% comment %} <div class="product-badges product-badges-position product-badges-mrg">
+                                            <span class="hot">Hot</span>
+                                        </div>{% endcomment %}
+                                    </div>
+                                    <div class="product-content-wrap">
+                                        <div class="product-category">
+                                            <a href="shop-grid-right.html">{{ product.category }}</a>
+                                        </div>
+                                        <h2><a href="{% url 'products_by_category' category_id=product.category.id %}">{{ product.product_name }}</a></h2>
+                                        <div class="rating-result" title="90%">
+                                            <span>
+                                                <span>90%</span>
+                                            </span>
+                                        </div>
+                                        <div class="product-price">
+                                            <span>{{product.price}}</span>
+                                            <span class="old-price">{{product.offer_price}}</span>
+                                        </div>
+                                        <div class="product-action-1 show">
+                                            <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            
+                        </div>
+                        <!--End product-grid-4-->
+                    </div>
+                    <!--En tab one (Featured)-->
+                    
+        <section class="deals section-padding">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6 deal-co">
+                        <div class="deal wow fadeIn animated mb-md-4 mb-sm-4 mb-lg-0" style="background-image: url('{% static 'assets/imgs/banner/banner1.jpg'%}');">
+                             <div class="deal-top">
+                                <h2 class="text-brand"></h2>
+                                <h5>welcom to the timeix</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 deal-co">
+                        <div class="deal wow fadeIn animated" style="background-image: url('{% static 'assets/imgs/banner/banner2.jpg'%}');">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+       <section class="section-padding">
+            <div class="container">
+                <h3 class="section-title mb-20 wow fadeIn animated"><span>Featured</span> Brands</h3>
+                <div class="carausel-6-columns-cover position-relative wow fadeIn animated">
+                    <div class="slider-arrow slider-arrow-2 carausel-6-columns-arrow" id="carausel-6-columns-3-arrows"></div>
+                    <div class="carausel-6-columns text-center" id="carausel-6-columns-3">
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-1.png'%}" alt="">
+                        </div>
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-2.png'%}" alt="">
+                        </div>
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-3.png'%}" alt="">
+                        </div>
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-4.png'%}" alt="">
+                        </div>
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-5.png'%}" alt="">
+                        </div>
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-6.png'%}" alt="">
+                        </div>
+                        <div class="brand-logo">
+                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-3.png'%}" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section> 
+       
+        <section class="mb-50">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="banner-bg wow fadeIn animated" style="background-image: url('{% static 'assets/imgs/banner/banner-8.jpg'%}')">
+                            <div class="banner-content">
+                                <h4 class="text-grey-4 mb-15">ABOUT CRONICO</h4>
+                                <h6class="fw-600">Welcome to cronico, your premier destination for exquisite timepieces! At cronico, we believe that a watch is not just a timekeeping device; it's a reflection of your style, a statement of sophistication, and a companion in every moment of your life.</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section> 
+        
+    </main>
+{% endblock %}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+{% load static %}
+<html class="no-js" lang="en">
+
+
+<!-- Mirrored from wp.alithemes.com/html/evara/evara-frontend/page-login-register.html by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 01 Aug 2021 15:26:06 GMT -->
+<head>
+    <meta charset="utf-8">
+    <title>Evara - eCommerce HTML Template</title>
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta property="og:title" content="">
+    <meta property="og:type" content="">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/imgs/theme/favicon.svg'%}">
+    <!-- Template CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/main.css'%}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+</head>
+
+<body>
+    {% include "userhome/includes/navbar.html" %}
+
+    {% block content %}
+
+    {% endblock %}
+
+    {% include 'userhome/includes/footer.html'%}
+    {% comment %} <div id="preloader-active">
+        <div class="preloader d-flex align-items-center justify-content-center">
+            <div class="preloader-inner position-relative">
+                <div class="text-center">
+                    <h5 class="mb-5">Now Loading</h5>
+                    <div class="loader">
+                        <div class="bar bar1"></div>
+                        <div class="bar bar2"></div>
+                        <div class="bar bar3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> {% endcomment %}
+    <!-- Vendor JS-->
+    <!-- Add this line in the head section of your HTML file -->
+    
+
+    <script src="{% static 'assets/js/vendor/jquery-3.6.0.min.js'%}"></script> 
+    <script src="{% static 'assets/js/vendor/jquery-migrate-3.3.0.min.js'%}"></script>
+    <script src="{% static 'assets/js/vendor/bootstrap.bundle.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/slick.js'%}"></script>
+    <script src="{% static 'custom.js'%}"></script>
+    <script src="{% static 'assets/js/vendor/modernizr-3.6.0.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery.syotimer.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/wow.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery-ui.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/perfect-scrollbar.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/magnific-popup.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/select2.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/waypoints.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/counterup.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery.countdown.min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/images-loaded.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/isotope.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/scrollup.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery.vticker-min.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery.theia.sticky.js'%}"></script>
+    <script src="{% static 'assets/js/plugins/jquery.elevatezoom.js' %}"></script>
+    <!-- Template  JS -->
+    <script src="{% static 'assets/js/main.js'%}"></script>
+    <script src="{% static 'assets/js/shop.js'%}"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
+{% comment %} <script>
+    $(document).ready(function(){
+        $('.product-image-slider').slick({
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            fade: true,
+            asNavFor: '.slider-nav-thumbnails'
+        });
+        $('.slider-nav-thumbnails').slick({
+            slidesToShow: 3,
+            slidesToScroll: 1,
+            asNavFor: '.product-image-slider',
+            dots: false,
+            centerMode: true,
+            focusOnSelect: true
+        });
+    });
+</script> {% endcomment %}
+</body>
+
+
+<!-- Mirrored from wp.alithemes.com/html/evara/evara-frontend/page-login-register.html by HTTrack Website Copier/3.x [XR&CO'2014], Sun, 01 Aug 2021 15:26:06 GMT -->
+</html>
