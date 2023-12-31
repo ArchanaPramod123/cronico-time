@@ -100,7 +100,7 @@
                             <small class="text-danger">{{ form.pincode.errors }}</small>
                         </div>     
                         <div class="form-group mb-30">
-                            <button class="btn btn-fill-out btn-block mt-30">Submit</button>
+                            <button href={% url 'payment'%} class="btn btn-fill-out btn-block mt-30">Submit</button>
                         </div>
                     </form>
                     <form method="post" action="{% url 'checkout' %}">
@@ -117,7 +117,7 @@
                         </div>
     
                         <div class="form-group mb-30">
-                            <button class="btn btn-fill-out btn-block mt-30">Use Existing Address</button>
+                            <button href={% url 'payment' %} class="btn btn-fill-out btn-block mt-30">Use Existing Address</button>
                         </div>
                 </div>
                 
@@ -136,34 +136,27 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for product_id,item in cart_data.items%}
+                                    <form method="post" action="{% url 'payment' %}">
+                                    {% for item in items%}
                                     <tr>
-                                        <td class="image product-thumbnail"><img src="{{ item.image}}"  alt="#"></td>
+                                        <td class="image product-thumbnail"><img src="{{ item.product.image.url}}"  alt="#"></td>
                                         <td>
-                                            <h5><a href="shop-product-full.html">{{ item.name }}</a></h5> <span class="product-qty">x {{item.qty}}</span>
+                                            <h5><a href="shop-product-full.html">{{ item.name }}</a></h5> <span class="product-qty">x {{item.quantity}}</span>
                                         </td>
-                                        <td>${%widthratio item.price 1 item.qty%}</td>
+                                        <td>${{item.total}}</td>
                                     </tr>
                                     {% endfor %}
                                     
                                    
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{ total_amt }}</span></td>
+                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{total }}</span></td>
                                     </tr>
+                                    
                                 </tbody>
                             </table>
                         </div>
                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
-                        {% comment %} <div class="payment_method">
-                            <div class="mb-25">
-                                <h5>Payment</h5>
-                            </div>
-                            <div class="payment_option">
-                                
-                            </div>
-                        </div> {% endcomment %}
-                        {% comment %} <a href="#" class="btn btn-fill-out btn-block mt-30">Cash on Devilvary</a> {% endcomment %}
                     </div>
                 </div>
             </div>

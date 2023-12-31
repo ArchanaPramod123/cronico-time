@@ -162,14 +162,15 @@ class ProductAttribute(models.Model):
     
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    total=models.BigIntegerField(null=True)
+    timestamp = models.DateTimeField(default=timezone.now,null=True)
+    is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} - {self.product.product_name}"
+        return f"{self.user.username} - {self.product.product.product_name}"
 
-    def get_total_price(self):
-        return self.quantity * self.product.productattribute_set.first().price
+  
     
 

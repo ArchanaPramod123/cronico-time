@@ -42,3 +42,4 @@ class CartOrderItems(models.Model):
 
   def image_tag(self):
     return mark_safe('<img src="/media/%s" width="50" height="50" />' % (self.image))
+    

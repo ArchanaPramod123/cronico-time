@@ -23,7 +23,8 @@
                                     <!-- MAIN SLIDES -->
                                     <div class="product-image-slider" >
                                         <figure class="border-radius-10">
-                                            <img  src="{{ product.productattribute_set.first.image.url }}" alt="product image" style="width: 404px;">
+                                            <img id="mainProductImage" style="height: 700px;
+                                            width: 100%;" src="{{ product.productattribute_set.first.image.url }}" alt="product image">
                                         </figure>
 
                                     </div>
@@ -64,7 +65,7 @@
                                     <div class="short-desc mb-30">
                                         <p>{{ product.description }}</p>
                                     </div>
-                                    <div class="product_sort_info font-xs mb-30">
+                                    <div class="product_sort_info font-xs 0mb-30">
                                         <ul>
                                             <li class="mb-10"><i class="fi-rs-crown mr-5"></i> 1 Year AL Jazeera Brand Warranty</li>
                                             <li class="mb-10"><i class="fi-rs-refresh mr-5"></i> 30 Day Return Policy</li>
@@ -72,25 +73,51 @@
                                         </ul>
                                     </div>
                                     <div class="attr-detail attr-color mb-15">
-                                        <strong class="mr-10">Color</strong>
+                                        
                                         <div id="color-buttons">
-                                           
+{% comment %}                                            
                                             {% for color in colors %}
-                                                <button onclick="changePrice(this)" class="btn btn-lg" data-color="{{color.color__id}}" data-price="{{color.price}}" style="background-color: {{ color.color__color_code }}"></button>
+                                                <button onclick="changePrice(this)" class="btn btn-lg" data-color="{{color.color__color_name}}" data-price="{{color.price}}"  style="background-color: {{ color.color__color_code }}"></button>
                                                 
-                                            {% endfor %}
-                                    
+                                            {% endfor %} {% endcomment %}
+                                            <div class="attr-detail attr-color mb-15">
+                                                <strong class="mr-10">Color</strong>
+                                                <ul class="list-filter color-filter">
+                                                    <form method="post">
+                                                        {% csrf_token %}
+                                                        <label for="colorSelect">Choose a color:</label>
+                                                        <select id="colorselect" name="colorselect">
+                                                            {% for color in colors %}
+                                                                {% if color.color__color_code is not none %}
+                                                                    <option   data-price="{{ color.price }}" value="{{ color.color__color_name }}" style="background-color: {{ color.color__color_code }}">{{ color.color__color_name }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </select>
+                                                </ul>
+                                            </div>
+
+                                            {% comment %} <input type="text"  id="product-color"> {% endcomment %}
+                                         <div class="product-color primary-color float-left">
+                                                <span type="tex" id="product-color" class='product-color1' >{{ product.productattribute_set.first.color }}</span>
+                                            </div> 
                                         </div>
                                     </div>
                                     
                                     <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                                     <div class="detail-extralink">
-                                        <input type="number" value="1" class="form-control" id="productQty" min="1" oninput="updateAddToCartButton()"/>
+                                        <input type="number" value="1" class="form-control" id="productQty" min="1" oninput="updateAddToCartButton()" name="quantity"/>
                                         <div class="input-group-append">
                                         <input type="hidden" class="product-image-one" value="{{product.productattribute_set.first.image.url}}"/>
                                         <input type="hidden" class="product-id" value="{{product.id}}"/>
                                         <input type="hidden" class="product-name" value="{{product.product_name}}"/>
-                                        <button class="button button-add-to-cart" id="addToCartBtn" type="button" onclick="addToCart()">Add To Cart</button>
+                                        <div class="product-color primary-color float-left">
+                                            <input type="text" id="product-color" class='product-color1' >{{ product.productattribute_set.first.color }}
+                                        </div>
+
+                                        {% comment %} <button class="button button-add-to-cart" id="addToCartBtn" type="button" onclick="addToCart()">Add To Cart</button>
+                                        {% endcomment %}
+                                        <button type="submit">Add To Cart</button>
+                                    </form>
                                         </div>
                                         <div id="error-message" class="text-danger"></div>
                                     </div>
@@ -118,6 +145,38 @@
                                 <div class="description mb-50">
                                     <p>{{ product.description }}</p>
                                     <p>{{ product.specifications }}</p>
+                                    <script>
+                                        // Function to change price and color when the select tag changes
+const changePriceFromSelect = (selectElement) => {
+    // Get the selected option
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+
+    // Get the color and price from the selected option
+    const selectedColor = selectedOption.getAttribute('data-color');
+    const price = selectedOption.getAttribute('data-price');
+
+    // Update the displayed price
+    document.getElementById('product_price').innerText = price;
+
+    // Update the displayed color
+    document.getElementById('product-color').innerText = selectedColor;
+
+    // Change the color of some element (replace 'elementId' with the actual ID)
+    // document.getElementById('elementId').style.backgroundColor = selectedColor;
+};
+
+// Add event listener for the change event on the color select
+document.getElementById('colorselect').addEventListener('change', function () {
+    changePriceFromSelect(this);
+});
+
+// Trigger the changePriceFromSelect function on page load to set initial values
+document.addEventListener('DOMContentLoaded', function () {
+    const selectElement = document.getElementById('colorselect');
+    changePriceFromSelect(selectElement);
+});
+
+                                    </script>
                                     {% comment %} <ul class="product-more-infor mt-30">
                                         <li><span>Type Of Packing</span> Bottle</li>
                                         <li><span>Color</span> Green, Pink, Powder Blue, Purple</li>
@@ -537,7 +596,7 @@
         </div>
     </section>
 </main>
-{% comment %} 
+
 <style>
     .thumbnail-image {
         width: 150px; /* Set the desired width */
@@ -552,7 +611,7 @@
         transform: scale(1.5); /* Increase size on hover */
         z-index: 1; /* Adjust z-index to bring the hovered image to the front */
     }
-
+{% comment %} 
     .zoom-container {
         position: fixed;
         top: 50%;
@@ -563,7 +622,7 @@
         max-height: 80vh; /* Adjust the maximum height as needed */
         overflow: hidden;
         z-index: 9999;
-    } 
+    } {% endcomment %}
 
     .zoomed-image {
         max-width: 100%;
@@ -572,9 +631,9 @@
         transition: transform 0.3s ease-in-out; /* Add smooth transition */
     }
 
-    .thumbnail-image:hover + .zoom-container .zoomed-image {
+    {% comment %} .thumbnail-image:hover + .zoom-container .zoomed-image {
         transform: scale(1); /* Return to original size on hover out */
-    } 
+    } {% endcomment %}
 </style>
 
 <script>
@@ -621,7 +680,7 @@
 
 <div id="zoomContainer" class="zoom-container">
     <img id="zoomedImage" class="zoomed-image" src="" alt="Zoomed Image">
-</div> {% endcomment %}
+</div>
 
 
 {% comment %} <script>

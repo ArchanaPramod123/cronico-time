@@ -81,23 +81,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for product_id,item in cart_data.items%}
+                                    <form method="post" action="{% url 'payment' %}">
+                                    {% for item in items%}
                                     <tr>
-                                        <td class="image product-thumbnail"><img src="{{ item.image}}"  alt="#"></td>
+                                        <td class="image product-thumbnail"><img src="{{ item.product.image.url}}"  alt="#"></td>
                                         <td>
-                                            <h5><a href="shop-product-full.html">{{ item.name }}</a></h5> <span class="product-qty">x {{item.qty}}</span>
+                                            <h5><a href="shop-product-full.html">{{ item.name }}</a></h5> <span class="product-qty">x {{item.quantity}}</span>
                                         </td>
-                                        <td>${%widthratio item.price 1 item.qty%}</td>
-                                        
+                                        <td>${{item.total}}</td>
                                     </tr>
                                     {% endfor %}
-                                    
                                     
                                    
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{ total_amt }}</span></td>
+                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{total }}</span></td>
                                     </tr>
+                                    
                                 </tbody>
                             </table>
                         </div>
@@ -110,7 +110,7 @@
                                 
                             </div>
                         </div> {% endcomment %}
-                        <a href="{% url 'payment' %}" class="btn btn-fill-out btn-block mt-30">Cash on delivery</a> 
+                        <a href="#" class="btn btn-fill-out btn-block mt-30">Cash on delivery</a> 
                     </div>
                 </div>
             </div>

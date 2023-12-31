@@ -29,30 +29,42 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for product_id,item in cart_data.items %}
-                                <tr>
-                                    <td class="image product-thumbnail"><img src="{{ item.image }}" alt="{{item.image}}">
-                                    {% comment %} <p><a href="{{ item.name|slugify }}/{{ product_id }}">{{item.name}}</a></p></td> {% endcomment %}
-                                     <p><a href="/deatils/{{item.id}}/{{product_id}}">{{ item.product.product_name }}</a></p></td>
-
+                              
+                                {% for product in items %}
+                                <tr id="cartItem_{{ product.id }}">
+                                    <td class="image product-thumbnail">
+                                        <img src="{{ product.product.image.url }}" alt="{{ product.image }}">
+                                        <p><a href="{{ product.name|slugify }}/{{ product.product_id }}">{{ product.name }}</a></p>
+                                        <p><a href="/deatils/{{ product.id }}/{{ product.product_id }}">{{ product.product.product_name }}</a></p>
+                                    </td>
+                                
                                     <td class="product-des product-name">
-                                        <h5 class="product-name"><a href="shop-product-right.html">{{ item.name }}</a></h5>
-                                        <p class="font-xs">{{item.description}}
-                                        </p>
+                                        <h5 class="product-name"><a href="shop-product-right.html">{{ product.product.product }}</a></h5>
+                                        <p class="font-xs">{{ product.product.color }}</p>
                                     </td>
-                                    <td class="price" data-title="Price"><span>{{ item.price }} </span></span></td>
-                                    <td class="text-center" data-title="Stock"> 
-                                        
-                                        <input type="number" class="product-qty-{{product_id}}" min="1" value="{{item.qty}}" oninput="updateAddToCartButton()" style="vertical-align: bottom;"/>
-                                        
+                                
+                                    <td>
+                                        <span>{{ product.product.price }}</span>
                                     </td>
-                                    <td class="text-right" data-title="Cart">
-                                        <span>${% widthratio item.price 1 item.qty%}</span>
+                                
+                                    <td class="text-center" data-title="Stock">
+                                        <input type="number" class="form-control input-number quantity-input" data-item-id="{{ product.id }}" name="quantity_{{ product.id }}" value="{{ product.quantity }}" />
                                     </td>
-                                    <td class="action update-item" data-item="{{product_id }}"  id="addToCartBtn" onclick="addToCart()" ><i class="fi-rs-shuffle"></i></td>
-                                    <td class="action delete-item" data-item="{{product_id }}" data-title="Remove"><i class="fi-rs-trash"></i></td>
+                                
+                                    <td class="text-right price-cell" data-title="Cart">
+                                        <p  data-item-id="{{ product.id }}" class="price-cell price">{{ product.total }}</p>
+                                    </td>
+                                
+                                    <td class="action">
+                                        <i class="fi-rs-shuffle"></i>
+                                    </td>
+                                
+                                    <td class="action delete-item" data-title="Remove" data-item-id="{{ product.id }}">
+                                        <i class="fi-rs-trash"></i>
+                                    </td>
                                 </tr>
                                 {% endfor %}
+                                
                                 
                                
                                 
@@ -60,7 +72,7 @@
                         </table>
                     </div>
                     <div class="cart-action text-end">
-                        {% comment %} <a class="btn  mr-10 mb-sm-15"><i class="fi-rs-shuffle mr-10"></i>Update Cart</a> {% endcomment %}
+                     
                         <a class="btn" href="{% url 'shop'%}"><i class="fi-rs-shopping-bag mr-10"></i>Continue Shopping</a>
                     </div>
                     <div class="divider center_icon mt-50 mb-50"><i class="fi-rs-fingerprint"></i></div>
@@ -126,15 +138,15 @@
                                         <tbody>
                                              <tr>
                                                 <td class="cart_total_label">Total Amount</td>
-                                                <td class="cart_total_amount"><span class="font-lg fw-900 text-brand">${{ total_amt }}</span></td>
+                                                <td class="cart_total_amount"><span class="font-lg fw-900 text-brand"  id="total">${{ total }}</span></td>
                                             </tr>
                                            
                                         </tbody>
                                     </table>
                                 </div>
-                                {% if totalitems %}
+                                {% comment %} {% if totalitems %} {% endcomment %}
                                 <a href="{% url 'checkout'%}" class="btn "> <i class="fi-rs-box-alt mr-10"></i> Proceed To CheckOut</a>
-                                {% endif %}
+                                {% comment %} {% endif %} {% endcomment %}
                             </div>
                         </div>
                     </div>
@@ -143,35 +155,67 @@
         </div>
     </section>
 </main>
-<script>
-    function updateAddToCartButton(inputField) {
-        var productId = inputField.classList[0].split('-')[2];
-        var addToCartBtn = document.getElementById('addToCartBtn_' + productId);
-        var quantity = parseInt(inputField.value, 10);
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $(document).on("change", ".quantity-input", function () {
+                var itemId = $(this).data("item-id");
+                var newQuantity = $(this).val();
+                
+                $.ajax({
+                    url: "{% url 'update_qty' %}",
+                    type: "GET",
+                    data: {
+                        item_id: itemId,
+                        new_quantity: newQuantity,
+                        csrfmiddlewaretoken: "{{ csrf_token }}"
+                    },
+                    success: function (data) {
+                        // Handle success
+                        var priceCell = $(".price-cell[data-item-id='" + itemId + "']");
+                        priceCell.html(data.new_price);
+                        $("#total").html(data.total);
+                    },
+                    error: function (error) {
+                        console.log("Error:", error);
+                    }
+                });
+            });
+            $(document).on("click", ".delete-item", function () {
+                var itemId = $(this).data("item-id");
     
-        if (quantity > 0) {
-            addToCartBtn.style.display = 'inline-block';
-        } else {
-            addToCartBtn.style.display = 'none';
-        }
-    }
-    
-    function addToCart(productId) {
-        var inputField = document.querySelector('.product-qty-' + productId);
-        var quantity = parseInt(inputField.value, 10);
-    
-        if (quantity <= 0) {
-            // Hide the button for negative quantity
-            var addToCartBtn = document.getElementById('addToCartBtn_' + productId);
-            addToCartBtn.style.display = 'none';
-    
-            // Display an error message or take appropriate action
-            alert('Please enter a valid quantity.');
-            return;
-        }
-    
-        // Your existing addToCart logic goes here
-        console.log('Adding to cart...');
-    }
+                $.ajax({
+                    url: "{% url 'delete_cart_item' %}",
+                    type: "GET",
+                    data: {
+                        item_id: itemId,  // Pass the correct item_id
+                        csrfmiddlewaretoken: "{{ csrf_token }}"
+                    },
+                    success: function (data) {
+                        // Handle success
+                        if (data.success) {
+                            // Remove the item from the table
+                            $("#cartItem_" + itemId).remove();
+                            // Update the total amount
+                            $("#total").html(data.total);
+                            // Optionally, update the total items count
+                            // $("#totalItemsCount").html(data.total_items);
+                        } else {
+                            // Provide feedback to the user
+                            alert(data.error);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", xhr.responseText);
+                    }
+                });
+            });
+        });
+        
+        
+   
     </script>
+       
 {% endblock %}

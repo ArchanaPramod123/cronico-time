@@ -25,6 +25,7 @@ from django.http import HttpResponse
 from django.utils.crypto import get_random_string
 from django.utils.datastructures import MultiValueDictKeyError
 from django.template.loader import render_to_string
+from django.db.models import Sum
 
 # Create your views here.
 
@@ -150,7 +151,7 @@ def resend_otp(request):
         messages.error(request, 'No signup session found.')
         return redirect('signup')
 
-#========================user signin to the system=========================================
+#========================user signin to the system==================================================================
     
 def signin(request):
     if request.method == 'POST':
@@ -213,96 +214,95 @@ def search(request):
 #===============================click the product it view the product details=============================================================================================
 
 def product_details(request, product_id,  category_id):
-    print("product_id:", product_id)
-    print("category_id:", category_id)
+    user=request.user
     product = Product.objects.get(id=product_id)
     images = ProductImages.objects.filter(product=product)
     related_product=Product.objects.filter(category=product.category).exclude(id=product_id)[:4]
     colors = ProductAttribute.objects.filter(product=product).values('color__id','color__color_name','color__color_code','price','image').distinct()
+
+    if request.method=="POST":
+        colour=request.POST.get('colorselect')
+        qty=request.POST.get('quantity')
+        product_colour=Color.objects.get(color_name=colour)
+        products=ProductAttribute.objects.get(product=product,color=product_colour)
+        item, created = CartItem.objects.get_or_create(user=user, product=products,defaults={'is_deleted': False})
+        item.total=products.price*float(qty)
+
+        # If the object was created, set the initial quantity
+        if created:
+            item.quantity = qty
+        
+        # If the object already exists, update its quantity
+        else:
+            item.quantity += int(qty)
+            item.save()
+            item.total=products.price*item.quantity
+       
+        item.save()
+        return redirect(cart_list)
+    
+    
     context={
         'product': product,
         'related_product ': related_product,
         'colors' :colors,
         'images':images,
     }
+    
 
     return render(request, 'userhome/product_details.html', context)
-
-
-#=======================================add-to-car=======================================================================================
-
-def add_to_cart(request):
-    cart_p={}
-    cart_p[str(request.GET['id'])]={
-        'image':request.GET['image'],
-        'name':request.GET['name'],
-        'qty':request.GET['qty'],
-        'price':request.GET['price'],
-    }
-    # print(cart_p)
-    #data exist
-    # if cart_pqty <= 0:
-    #     return JsonResponse({'error': 'Please enter a valid quantity.'}, status=400)
-    if 'cartdata' in request.session:
-        if str(request.GET['id']) in request.session['cartdata']:
-            cart_data=request.session['cartdata']
-            cart_data[str(request.GET['id'])]['qty']=int(cart_p[str(request.GET['id'])]['qty'])
-            cart_data.update(cart_data)
-            request.session['cartdata']=cart_data
-        else:
-            cart_data=request.session['cartdata']
-            cart_data.update(cart_p)
-            request.session['cartdata']=cart_data
-    #not exist
-    else:
-        request.session['cartdata']=cart_p
-    # print(cart_p)
-    # print(request.session['cartdata'])
-    messages.success(request, 'Item added to the cart successfully.')
-    return JsonResponse({'data':request.session['cartdata'],'totalitems':len(request.session['cartdata'])})
-
 #======================================== cart-list page =============================================================================================================
 
 def cart_list(request):
-    total_amt=0
-    if 'cartdata' in request.session:
-        for p_id,item in request.session['cartdata'].items():
-            total_amt+=int(item['qty'])*float(item['price'])
-
-        return render(request, 'userhome/cart.html',{'cart_data':request.session['cartdata'],'totalitems':len(request.session['cartdata']),'total_amt':total_amt})  
-    else:
-        return render(request, 'userhome/cart.html',{'cart_data':'','totalitems':0,'total_amt':total_amt}) 
+    user=request.user 
+    items=CartItem.objects.filter(user=user, is_deleted=False)
+  
+    total = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+ 
+    return render(request,'userhome/cart.html',{'items':items,'total':total})
      
 #========================================= delete cart item ======================================================================================================================
-def delete_cart_item(request):
-    p_id=str(request.GET['id'])
-    if 'cartdata' in request.session:
-        if p_id in request.session['cartdata']:
-            cart_data=request.session['cartdata']
-            del request.session['cartdata'][p_id]  #delete the cart data
-            request.session['cartdata']=cart_data #after remove the data is store in the session
-    total_amt=0
-    for p_id,item in request.session['cartdata'].items():
-        total_amt+=int(item['qty'])*float(item['price'])
-    #reloading the page
-    t=render_to_string('userhome/cart_list.html',{'cart_data':request.session['cartdata'],'totalitems':len(request.session['cartdata']),'total_amt':total_amt})
-    return JsonResponse({'data':t,'totalitems':len(request.session['cartdata'])})
+def qty_update(request):
+    user = request.user
+    item_id = request.GET.get('item_id')
+    new_quantity = int(request.GET.get('new_quantity'))
+    print(item_id)
+    print(new_quantity)
+    cart_items = CartItem.objects.all().filter(is_deleted=False, user=user)
+    
 
-#===================================update cart===============================================================================================================================
-def update_cart_item(request):
-    p_id=str(request.GET['id'])
-    p_qty=request.GET['qty']
-    if 'cartdata' in request.session:
-        if p_id in request.session['cartdata']:
-            cart_data=request.session['cartdata']
-            cart_data[str(request.GET['id'])]['qty']=p_qty #update the cart qty
-            request.session['cartdata']=cart_data #after remove the data is store in the session
-    total_amt=0
-    for p_id,item in request.session['cartdata'].items():
-        total_amt+=int(item['qty'])*float(item['price'])
-    #reloading the page
-    t=render_to_string('userhome/cart_list.html',{'cart_data':request.session['cartdata'],'totalitems':len(request.session['cartdata']),'total_amt':total_amt})
-    return JsonResponse({'data':t,'totalitems':len(request.session['cartdata'])})
+
+    cart_item = get_object_or_404(CartItem, id=item_id)
+    now=timezone.now()
+
+    # Update the quantity in the database
+    cart_item.quantity = new_quantity
+    cart_item.total = cart_item.product.price * new_quantity 
+    cart_item.save()
+    total_price = cart_items.aggregate(total=Sum('total'))['total']
+    
+
+    # You can optionally return some data in the response
+    response_data = {'new_qty':new_quantity,'new_price':cart_item.total,'total':total_price}
+    return JsonResponse(response_data)
+
+def delete_cart_item(request):
+    user = request.user
+    item_id = request.GET.get('item_id')
+
+    try:
+        cart_item = CartItem.objects.get(id=item_id, user=user)
+        cart_item.is_deleted = True
+        cart_item.save()
+
+        # Recalculate the total
+        cart_items = CartItem.objects.filter(user=user, is_deleted=False)
+        total = cart_items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+        return JsonResponse({'success': True, 'total': total})
+    except CartItem.DoesNotExist:
+        return JsonResponse({'error': 'Item not found in the cart'})
+
 #=======================================user account====================================================================================================================================
 @login_required(login_url='user_login')
 def user_account(request):
@@ -315,6 +315,29 @@ def user_account(request):
         'order_history': order_history
     }
     return render(request, 'userhome/user_account.html',context)
+@login_required(login_url='user_login')
+def edit_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, users=request.user)
+    
+    if request.method == 'POST':
+        form = AddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            return redirect('user_account')
+    else:
+        form = AddressForm(instance=address)
+    
+    return render(request, 'userhome/edit_address.html', {'form': form, 'address': address})
+
+@login_required(login_url='user_login')
+def delete_address(request, address_id):
+    address = get_object_or_404(Address, id=address_id, users=request.user)
+    
+    if request.method == 'POST':
+        address.delete()
+        return redirect('user_account')
+    
+    return render(request, 'userhome/delete_address.html', {'address': address})
 #====================================cancel order========================================================================================================================================
 
 @login_required(login_url='user_login')
@@ -343,6 +366,8 @@ def cancel_order(request):
     messages.error(request, 'Invalid request to cancel order.')
     return redirect('user_account')
 #=========================================password change====================================
+
+@login_required(login_url='user_login')
 def change_password(request):
     if request.method == 'POST':
         current_password = request.POST.get('current_password')
@@ -369,6 +394,12 @@ def change_password(request):
         update_session_auth_hash(request, request.user)
 
         messages.success(request, 'Your password was successfully updated!')
-        return redirect('user_account')  # Redirect to the user account page
+        logout(request)
+        return redirect('user_login')
+        # return redirect('user_account')  # Redirect to the user account page
 
     return render(request, 'userhome/change_password.html')
+
+
+
+

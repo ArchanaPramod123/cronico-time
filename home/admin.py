@@ -21,6 +21,7 @@ class ProductAttributeAdmin(admin.ModelAdmin):
 # Register your models here.
 
 admin.site.register(User)
+admin.site.register(CartItem)
 admin.site.register(category,CategoryAdmin)
 admin.site.register(Product,ProductAdmin)
 admin.site.register(Brand,BrandAdmin)
