@@ -1,0 +1,86 @@
+{% extends 'paymenthome/base.html' %}
+{% load static %}
+
+{% block content %}
+
+ <main>
+
+
+  <!-- Hero Area Start-->
+  <div class="slider-area ">
+    <div class="single-slider slider-height2 d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                  <br>
+                    <div class="hero-cap text-center">
+                        <h2>MY ORDERS LIST</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+<!--================Cart Area =================-->
+<section class="cart_area section_padding">
+  
+
+  <div class="container">
+
+  <div class="cart_inner">
+    <div class="table-responsive">
+      <table class="table">
+        <br>
+  <!-- <caption>List of categories</caption> -->
+  <thead>
+    <tr>
+
+    <th scope="col">Image</th>
+    <th scope="col">Product</th>
+    <th scope="col">Brand</th>
+    <th scope='col'>Quantity</th>
+    <th scope="col">Price</th>
+    <th scope="col">Status</th>
+    <th scope="col">Action</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for o in order %}
+    {% comment %} {% for p in order.myorders.all %} {% endcomment %}
+    <tr>
+    <td><a ><img src="{{MEDIA_URL}}{{o.product.images.url}} " class="img-fluid rounded-start" alt="Image" width="150" height="100"></a></td>
+    <td style="justify-content: center;">{{o.product.product_name}}</td>
+    <td style="justify-content: center;">{{o.product.brand}}</td>
+    <td style="justify-content: center;">{{ o.quantity}}</td>
+    <td style="justify-content: center;">₹{{ o.product.price}}</td>
+    <td style="justify-content: center; color: {% if o.order.status == 'New' %}blue{% elif o.order.status == 'Pending' %}orange{% elif o.order.status == 'Shipped' %}brown{% elif o.order.status == 'Delivered' %}green{% elif o.order.status == 'Cancelled' %}red{% endif %}">{{ o.order.status }}</td>
+     
+    <td>
+      <a href class="btn btn-warning">Return</a>
+      <hr>
+      <a href="{% url 'cancel_order' o.order.id %}" class="btn btn-danger">Cancel</a>
+
+              
+             </td>
+            </tr>                               
+    {% endfor %}
+
+  </tbody>
+  </table>
+  </div>
+</div>
+    </div>
+</section>
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+ 

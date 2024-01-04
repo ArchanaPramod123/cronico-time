@@ -9,10 +9,17 @@ from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 from django.db.models import Sum
+from django.urls import reverse
+from datetime import datetime
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponseBadRequest
 
 
 #========================================== check out========================================================================================================================================
-
+razorpay_client = razorpay.Client(
+    auth=(settings.RAZOR_KEY_ID, settings.RAZOR_KEY_SECRET))
 @login_required(login_url='user_login')
 def checkout(request):
     user=request.user 
@@ -23,6 +30,7 @@ def checkout(request):
     address_form = AddressForm(request.POST or None)
 
     if request.method == 'POST':
+        print("entered")
         if 'use_existing_address' in request.POST:
             selected_address_id = request.POST.get('existing_address')
             selected_address = get_object_or_404(Address, id=selected_address_id)
@@ -48,69 +56,233 @@ def checkout(request):
 
     return render(request, 'paymenthome/checkout.html',{'user_addresses': user_addresses,'items':items,'total':total})
 #==================================================payment =========================================================================================================================
-
 @login_required(login_url='user_login')
 def payment(request):
+    print("Entering payment")
     user=request.user 
     items=CartItem.objects.filter(user=user, is_deleted=False)
     user_addresses = Address.objects.filter(users=request.user)
-    total = items.aggregate(total_sum=Sum('total'))['total_sum']
-    print("Payment View - Total:", total)
+    total = items.aggregate(total_sum=Sum('total'))['total_sum'] # Rs. 200'
+
+    if request.method == "POST":
+        amount=request.POST.get('total')
+    
+    amount = int(amount)
+
+    currency = 'INR'
+    amount_in_paise = amount * 100  
+ 
+    # Create a Razorpay Order
+    razorpay_order = razorpay_client.order.create(dict(amount=amount_in_paise,
+                                                       currency=currency,
+                                                       payment_capture='0'))
+ 
+    # order id of newly created order.
+    razorpay_order_id = razorpay_order['id']
+    callback_url = 'paymenthandler/'
+ 
+    # we need to pass these details to frontend.
     context = {
         'total': total,
         'items': items,
-        'user_addresses': user_addresses
+        'user_addresses': user_addresses,
     }
-
-    return render(request, 'paymenthome/payment.html',context)
-
-    # total_amt = 0
-
-    # if 'cartdata' in request.session:
+    context['razorpay_order_id'] = razorpay_order_id
+    context['razorpay_merchant_key'] = settings.RAZOR_KEY_ID
+    context['razorpay_amount'] = amount_in_paise
+    context['currency'] = currency
+    context['callback_url'] = callback_url
  
-    #     for p_id, item in request.session['cartdata'].items():
-    #         total_amt += int(item['qty']) * float(item['price'])
+    return render(request, 'paymenthome/payment.html', context=context)
+ 
+@csrf_exempt
+def paymenthandler(request):
+    print("Wnt to join")
+    user = request.user 
+    items = CartItem.objects.filter(user=user, is_deleted=False)
+    user_addresses = Address.objects.filter(users=request.user)
+    total = items.aggregate(total_sum=Sum('total'))['total_sum']
 
-    #     #order
-    #         order = CartOrder.objects.create(
-    #             user=request.user,
-    #             total_amt=total_amt
-    #         )
+    print(total,"totallllllllllll")
 
-    #         #Order items
-    #         for p_id, item in request.session.get('cartdata').items():
-    #             product_attr = ProductAttribute.objects.filter(product=p_id).first()
+    if request.method == "POST":
+        print(request.POST.dict())
+        amount = request.POST.get('total')
+        print(amount, "amount")
 
-    #             print('id:'+ p_id)
+        try:
+            # get the required parameters from post request.
 
-    #             item_s = CartOrderItems.objects.create(
-    #                 order=order,
-    #                 invoice_no=f'INV-{order.id}',
-    #                 item=item['name'],
-    #                 image=item['image'],
-    #                 qty=item['qty'],
-    #                 price=item['price'],
-    #                 total=float(item['qty']) * float(item['price'])
-    #             )
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            print(payment_id,"paymentid")
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            print(razorpay_order_id,"razorpayid")
+            signature = request.POST.get('razorpay_signature', '')
+            print(signature,"signaturessss")
 
-    #             #stock update
-    #             product_attr.stock -= int(item['qty'])
-    #             product_attr.save()
+            # create a dictionary with the required parameters for signature verification
+            params_dict = {
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature,
+              # Include the amount parameter for verification
 
-    #     # Clear the cart session
-    #     del request.session['cartdata']
+            }
 
-    #     # Redirect to the success page
-    #     messages.success(request, 'Order placed successfully!')
-    #     return redirect('payment_success')
-#======================================== payment success or payment failed=======================================================================================================================
+            # verify the payment signature
+            # result = razorpay_client.utility.verify_payment_signature(params_dict,settings.RAZOR_KEY_SECRET)
+            if payment_id:
+                # if the signature is valid, capture the payment
+                # razorpay_client.payment.capture(payment_id,int(amount))
 
-@login_required(login_url='user_login')
-def payment_success(request):
-    return render(request, 'paymenthome/payment-success.html')
+                # Call the online_place_order function upon successful payment
+                print("Redirecting to order_success page")
+                # online_place_order(request)
+                return redirect(online_place_order)
+                # render success page on successful capture of payment
+                # return render(request, 'paymenthome/payment_success.html')
+            else:
+                # if signature verification fails, render the failure page
+                return render(request, 'paymenthome/payment_failed.html')
+        except Exception as e:
+            # if there is an error, render the failure page
+            print("Error in paymenthandler:", str(e))
+            return render(request, 'paymenthome/payment_failed.html')
+    else:
+        # if other than POST request is made, return a bad request response
+        return HttpResponseBadRequest()
 
-@login_required(login_url='user_login')
-def payment_failed(request):
-    return render(request, 'paymenthome/payment-failed.html')
 
-#===============================================================================================================================================================
+# --------------------------------------------------------
+
+def online_place_order(request):
+    user = request.user 
+    items = CartItem.objects.filter(user=user, is_deleted=False)
+    total = items.aggregate(total_sum=Sum('total'))['total_sum']
+    adress=Address.objects.filter(users=request.user).first()
+    # if request.method == "POST":
+        
+    short_id = str(random.randint(1000, 9999))
+    yr = datetime.now().year
+    dt = int(datetime.today().strftime('%d'))
+    mt = int(datetime.today().strftime('%m'))
+    d = datetime(yr, mt, dt).date()
+    payment_id = f"PAYMENT-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+
+    current_date = d.strftime("%Y%m%d")
+    short_id = str(random.randint(1000, 9999))
+    order_numbers = current_date + short_id 
+
+    var=CartOrder.objects.create(
+        user=request.user,
+        # payment='Razorpay',
+        order_number=order_numbers,
+        order_total= total,
+        selected_address=adress,
+        ip=request.META.get('REMOTE_ADDR')    
+        )
+    var.save()
+    payment_instance=Payments.objects.create(
+        user=request.user,
+        payment_id=payment_id,
+        payment_method='Razorpay',
+        amount_paid= total,
+        status='paid',
+                
+        )
+        
+    var.payment=payment_instance
+    var.save()
+    cart=CartItem.objects.filter(user=request.user)
+            
+    for item in cart:
+        orderedproduct=ProductOrder()
+        item.product.stock-=item.quantity
+        item.product.save()
+        orderedproduct.order=var
+        orderedproduct.payment=payment_instance
+        orderedproduct.user=request.user
+        orderedproduct.product=item.product.product
+        orderedproduct.quantity=item.quantity
+        orderedproduct.product_price=item.product.price
+        product_attribute = ProductAttribute.objects.get(product=item.product.product, color=item.product.color)
+        orderedproduct.variations = product_attribute
+        orderedproduct.ordered=True
+        orderedproduct.save()
+        item.delete()  
+
+    return redirect('order_success')
+
+#==================================================payment =========================================================================================================================
+
+def place_order(request):
+    print('helooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo')
+    user = request.user 
+    items = CartItem.objects.filter(user=user, is_deleted=False)
+    total = items.aggregate(total_sum=Sum('total'))['total_sum']
+    adress=Address.objects.filter(users=request.user).first()
+    print(total,"totallllllllllllllllllllllllllllllllllllllllllllll")
+    print("we;come to insieeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+    short_id = str(random.randint(1000, 9999))
+    yr = datetime.now().year
+    dt = int(datetime.today().strftime('%d'))
+    mt = int(datetime.today().strftime('%m'))
+    d = datetime(yr, mt, dt).date()
+    payment_id = f"PAYMENT-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+
+    current_date = d.strftime("%Y%m%d")
+    short_id = str(random.randint(1000, 9999))
+    order_numbers = current_date + short_id 
+
+    var=CartOrder.objects.create(
+        user=request.user,
+        # payment='Razorpay',
+        order_number=order_numbers,
+        order_total= total,
+        selected_address=adress,
+        ip=request.META.get('REMOTE_ADDR')    
+    )
+    var.save()
+    payment_instance=Payments.objects.create(
+        user=request.user,
+        payment_id=payment_id,
+        payment_method='COD',
+        amount_paid= total,
+        status='Pending',
+                
+    )
+        
+    var.payment=payment_instance
+    var.save()
+            
+    cart=CartItem.objects.filter(user=request.user)
+            
+    for item in cart:
+        orderedproduct=ProductOrder()
+        item.product.stock-=item.quantity
+        item.product.save()
+        orderedproduct.order=var
+        orderedproduct.payment=payment_instance
+        orderedproduct.user=request.user
+        orderedproduct.product=item.product.product
+        orderedproduct.quantity=item.quantity
+        orderedproduct.product_price=item.product.price
+        product_attribute = ProductAttribute.objects.get(product=item.product.product, color=item.product.color)
+        orderedproduct.variations = product_attribute
+        orderedproduct.ordered=True
+        orderedproduct.save()
+        item.delete()  
+
+    # if request.method=='POST':
+        
+    return redirect('order_success')
+
+def order_success(request):
+    order = CartOrder.objects.filter(user=request.user).order_by('-id').first()
+    print(order) 
+    
+    context = {
+        'order_number': order.order_number,
+        'order_status': order.status,
+    }
+    return render(request,'paymenthome/payment_success.html',context)

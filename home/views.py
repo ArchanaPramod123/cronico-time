@@ -1,14 +1,11 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .forms import SignUpForm
+# from .forms import SignUpForm
 from django.contrib import messages
-from payment.models import *
-from payment.views import *
-from .models import *
 from django.db import transaction
-from .models import User, Product, Brand, category
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 import random
+from payment.forms import AddressForm
 from .context_processors import *
 from django.contrib.auth import logout,login
 from django.core.mail import send_mail
@@ -20,13 +17,14 @@ from datetime import datetime, timedelta
 from django.http import Http404
 from django.http import JsonResponse
 from django.urls import reverse
-from payment.models import *
 from django.http import HttpResponse
 from django.utils.crypto import get_random_string
 from django.utils.datastructures import MultiValueDictKeyError
 from django.template.loader import render_to_string
 from django.db.models import Sum
 
+from payment.models import Address,CartOrder
+from .models import Product,category,User,ProductImages,ProductAttribute,Color,CartItem
 # Create your views here.
 
 #===============================user index========================================================================================================================
@@ -221,6 +219,7 @@ def product_details(request, product_id,  category_id):
     colors = ProductAttribute.objects.filter(product=product).values('color__id','color__color_name','color__color_code','price','image').distinct()
 
     if request.method=="POST":
+        print("request entered ")
         colour=request.POST.get('colorselect')
         qty=request.POST.get('quantity')
         product_colour=Color.objects.get(color_name=colour)

@@ -1,0 +1,26 @@
+{% extends 'paymenthome/base.html' %}
+{% load static %}
+{% block content %}
+
+    <div class="container">
+        <div class="billing_details">
+            <div class="row">
+                <div class="col-lg-12" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; text-align: center;">
+                    <h3>Order Placed</h3>
+                    <h1>Payment Successful</h1>
+                    <p>Your payment has been successfully processed.</p>
+                
+                    {% if order_number %}
+                        <p>Order Number: {{ order_number }}</p>
+                        <p>Status: {{ order_status }}</p>
+                    {% else %}
+                        <p>No order found.</p>
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

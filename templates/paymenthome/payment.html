@@ -1,6 +1,11 @@
-{% extends 'userhome/base.html'%}
+{% extends 'paymenthome/base.html'%}
 {% load static %}
 {% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/latest/css/all.min.css" integrity="actual-integrity-value" crossorigin="anonymous" />
+
+
+
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -82,6 +87,7 @@
                                 </thead>
                                 <tbody>
                                     <form method="post" action="{% url 'payment' %}">
+                                        {% csrf_token %}
                                     {% for item in items%}
                                     <tr>
                                         <td class="image product-thumbnail"><img src="{{ item.product.image.url}}"  alt="#"></td>
@@ -91,7 +97,7 @@
                                         <td>${{item.total}}</td>
                                     </tr>
                                     {% endfor %}
-                                    
+                                </form>
                                    
                                     <tr>
                                         <th>Total</th>
@@ -102,19 +108,74 @@
                             </table>
                         </div>
                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
-                        {% comment %} <div class="payment_method">
-                            <div class="mb-25">
-                                <h5>Payment</h5>
-                            </div>
-                            <div class="payment_option">
-                                
-                            </div>
-                        </div> {% endcomment %}
-                        <a href="#" class="btn btn-fill-out btn-block mt-30">Cash on delivery</a> 
+                        <div>
+                            
+                                {% comment %} <input type="hidden" name="total" value="{{ total }}">
+                                <input type="hidden" name="cart_id" value="{{ cart_id }}"> {% endcomment %}
+                                <a href="{% url 'place_order'%}"><button type="submit" class="btn btn-primary">Cash on delivery</button></a>
+                        
+                        </div>
+                        <div class="btn_container">
+                           
+                            <form method="post" action="{% url 'payment' %}">
+                                <input type="hidden" name="total" value="{{ total }}">
+                                <input type="hidden" name="cart_id" value="{{ cart_id }}">
+                                <input type="hidden" name="razorpay_order_id" value="{{ razorpay_order_id }}">
+                                <input type="hidden" name="razorpay_signature" value="{{ razorpay_signature }}"> 
+                                <button class="btn" id="pay-btn">RazorPay</button>
+                            </form>
+                            
+
+                          </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+   
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI/t1pWC2JzucI3lGv3nANu29b8f0u6FqFn1kxj8=" crossorigin="anonymous"></script> 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+
+    var options = {
+       
+      // Enter the Key ID generated from the Dashboard
+      key: "rzp_test_TFXJczUeSyoF49", 
+       
+      // Amount is in currency subunits.
+      // Default currency is INR. Hence, 
+      // 50000 refers to 50000 paise
+      amount: parseInt("{{ total }}") * 100,
+
+      currency: "INR",
+       
+      // Your/store name.
+      name: "CRONICO", 
+       
+      // Pass the `id` obtained in the response of Step 1
+      order_id: "{{ razorpay_order_id }}",
+      callback_url: "{% url 'paymenthandler' %}",
+
+      // ... other options
+      notes: {
+            "total": "{{ total }}",
+            "cart_id": "{{ cart_id }}"
+        }
+    };
+     
+    // initialise razorpay with the options.
+    var rzp1 = new Razorpay(options);
+    // add event listener to the payment button.
+    document.getElementById("pay-btn").onclick = function (e) {
+      rzp1.open();
+      e.preventDefault();
+    };
+    
+
+  </script>
+  
+
+    
 </main>
 {% endblock %}

@@ -80,9 +80,9 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':'time',
-        'USER': 'time',
-        'PASSWORD':'time',
+        'NAME':'cro',
+        'USER': 'cro',
+        'PASSWORD':'cro',
         'HOST':'localhost',
         'POST':'',
 
@@ -90,6 +90,7 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL='home.User'
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -142,3 +143,9 @@ EMAIL_PORT='587'
 EMAIL_HOST_USER='timetrixcronico@gmail.com'
 EMAIL_HOST_PASSWORD='idyv hfbl ynza aprh'
 EMAIL_USE_TLS=True
+
+RAZOR_KEY_ID = 'rzp_test_TFXJczUeSyoF49'
+RAZOR_KEY_SECRET = 'B5yxLGdv6KQ6gr7bbsNEwFYq'
+
+# To Enable Popus in Django or else it will block the payment popup
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"

@@ -1,8 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin,Group,Permission,AbstractUser
+from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,PermissionsMixin,Group,Permission
 from django.core.validators import FileExtensionValidator
 from django.utils.safestring import mark_safe
 from django.utils import timezone
+# from .views import 
 
 
 # Create your models here.
@@ -170,7 +171,14 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.product.product.product_name}"
-
+    def get_subtotal(self):
+        return self.product.price * self.quantity
+    
+    def get_total_price(self):
+        if self.items.exists():
+            return sum(item.get_subtotal() for item in self.items.all())
+        else:
+            return 0
   
     
 

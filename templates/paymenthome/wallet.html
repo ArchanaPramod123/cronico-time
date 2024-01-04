@@ -1,0 +1,47 @@
+{% extends 'paymenthome/base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+
+  <section class="section-content padding-y">
+
+       
+    <div class="container">
+        <div class="row">
+            <div class="col-8">   
+                <div class="col-12 mt-5">
+                    <h4 class="text-center alert alert-primary">Wallets</h4>
+                    <table class="table caption-top">
+                      <!-- <caption>List of categories</caption> -->
+                      <thead>
+                        <tr>
+        
+                          <th scope="col">User Name</th>
+                          <th scope="col">Wallet Amount</th>
+                         
+                        </tr>
+                      </thead>
+                      <tbody>
+                          
+                          
+                        <tr>
+                          <td>{{ wallet.user.first_name }}</td>
+                          <td>{{ wallet.balance }}</td>      
+                        </tr>
+                         
+        
+                      </tbody>
+                    </table>
+        </div>
+
+
+
+
+
+            </div>
+        </div>
+    </section>
+
+    {% endblock %}

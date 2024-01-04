@@ -1,0 +1,140 @@
+{% extends 'paymenthome/base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+ <main>
+
+
+  <!-- Hero Area Start-->
+  <div class="slider-area ">
+    <div class="single-slider slider-height2 d-flex align-items-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                  <br>
+                    <div class="hero-cap text-center">
+                        <h2>MY ORDERS LIST</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 
+<!--================Cart Area =================-->
+<section class="cart_area section_padding">
+  
+
+  <div class="container">
+  <div class="cart_inner">
+    <div class="table-responsive">
+      <table class="table">
+      
+
+
+
+				<div class="row">
+		<table class="table caption-top">
+			<!-- <caption>List of categories</caption> -->
+			<thead>
+			  <tr>
+
+				{% comment %} <th scope="col">User Name</th> {% endcomment %}
+				<th scope="col">Order No.</th>
+				<th scope="col">Order Date</th>
+				<th scope="col">Payment Method</th>
+				{% comment %} <th scope="col">Payment Status</th> {% endcomment %}
+				<th scope="col">Order Status</th>
+				<th scope="col">Action</th>
+		
+			  </tr>
+			</thead>
+			<tbody>
+				{% for order in orders %}
+				{% comment %} {% for p in order.myorders.all %} {% endcomment %}
+			  <tr>
+				{% comment %} <th><a href="{% url 'order_products' order.id %}">{{order.user}}</a></th> {% endcomment %}
+				<td><a href="{% url 'myorder_products' order.id %}">{{ order.order_number }}</td>
+				<td>{{ order.created_at }}</td>
+				<td>{{ order.payment.payment_method }}</td>
+				{% comment %} <td>{{order.payment.status}}</td> {% endcomment %}
+				<td style="color: {% if order.status == 'New' %}blue{% elif order.status == 'Pending' %}orange{% elif order.status == 'Shipped' %}brown{% elif order.status == 'Delivered' %}green{% elif order.status == 'Cancelled' %}red{% endif %}">{{ order.status }}</td>
+				{% if order.status == 'Delivered' %}
+						<td>
+						  <button onclick="openPopup('returnPopup')" type="button" class="btn btn-primary" data-toggle="modal" data-target="#returnModal{{ order.id }}">
+							Return Order
+						  </button>
+						
+						</td>
+					
+						
+						{% elif order.status == 'Cancelled'%}<td>Cancelled</td>
+						{% elif order.status == 'Return'%}<td>Return Request</td>
+
+						{% else %}
+						<td>
+						  <button onclick="openPopup('cancelPopup')" type="button" class="btn btn-primary " data-toggle="modal" data-target="#cancelModal{{ order.id }}">
+							Cancel Order
+						  </button>
+						</td>
+					
+						{% endif %}
+			  </tr>  
+			  <div id="cancelModal{{ order.id }}" class="modal fade cancelModal">
+				<div class="modal-dialog modal-dialog-centered">
+				  <div class="modal-content">
+					<div class="modal-header">
+					  <h5 class="modal-title">Cancel Order</h5>
+					  <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closePopup('cancelPopup')">
+						<span aria-hidden="true">&times;</span>
+					  </button>
+					</div>
+					<div class="modal-body">
+					  <form id="cancelForm" method="POST" action="{% url 'cancel_order' order.id %}">
+						{% csrf_token %}
+						<textarea name="cancellation_reason" placeholder="Enter cancellation reason" required></textarea>
+						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+						<button type="submit" class="btn btn-danger">Confirm Cancel </button>
+					  </form>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			  
+			  <!-- Return Order Modal -->
+			  <div id="returnModal{{ order.id }}" class="modal fade returnModal">
+				<div class="modal-dialog modal-dialog-centered">
+				  <div class="modal-content">
+					<div class="modal-header">
+					  <h5 class="modal-title">Return Order</h5>
+					  <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closePopup('returnPopup')">
+						<span aria-hidden="true">&times;</span>
+					  </button>
+					</div>
+					<div class="modal-body">
+					  <form id="returnForm" method="POST" action=" {% url 'return_order' order.id %}">
+						{% csrf_token %}
+						<textarea name="return_reason" placeholder="Enter return reason" required></textarea>
+						<button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+						<button type="submit" class="btn btn-danger">Confirm Return </button>
+					  </form>
+					</div>
+				  </div>
+				</div>
+			  </div>                              
+				{% endfor %}
+
+			</tbody>
+		  </table>
+	</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+{% endblock %}

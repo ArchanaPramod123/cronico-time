@@ -1,4 +1,4 @@
-{% extends 'userhome/base.html'%}
+{% extends 'paymenthome/base.html'%}
 {% load static %}
 {% block content %}
 <main class="main">
@@ -46,9 +46,9 @@
                                 <div class="form-group">
                                     <input type="text" placeholder="Enter Coupon Code...">
                                 </div>
-                                <div class="form-group">
+                                {% comment %} <div class="form-group">
                                     <button class="btn  btn-md" name="login">Apply Coupon</button>
-                                </div>
+                                </div> {% endcomment %}
                             </form>
                         </div>
                     </div>
@@ -150,7 +150,7 @@
                                    
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{total }}</span></td>
+                                        <td colspan="2" class="product-subtotal">₹<span class="font-xl text-brand fw-900">{{total }}</span></td>
                                     </tr>
                                     
                                 </tbody>
