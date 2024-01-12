@@ -1,47 +1,160 @@
 {% extends "adminhome/base.html" %}
 {% load static %}
 {% block content %}
-<div class="card-body">
-    <div class="table-responsive">
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    
-                    <th>invoice_no</th>
-                    <th>item</th>
-                    <th>image</th>
-                    <th>qty</th>
-                    <th>price</th>
-                    <th>total</th>
-                    {% comment %} <th class="text-end"> Action </th> {% endcomment %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in orderitems %}
-                <tr>
-                    
-                    <td>{{item.invoice_no}}</span></td>
-                    <td>{{item.item}}</td>
-                    <td><img src="{{item.image}}" class="img-sm img-thumbnail" alt="Item"></td>
-                    <td>{{item.qty}}</span></td>
-                    <td>{{item.price}}</td>
-                    <td>{{item.total}}</td>
-
-                </tr>
-                {% endfor %}
-                
-                
-            </tbody>
-        </table> <!-- table-responsive.// -->
-        {% if messages %}
-        <div class="alert alert-danger">
-            {% for message in messages %}
-            <strong>{{ message }}</strong><br>
-            {% endfor %}
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Order detail</h2>
+            <p>Details for Order ID: 3453012</p>
         </div>
-        {% endif %}
-                                                
     </div>
-</div> <!-- card-body end// -->
-</div> <!-- card end// -->
+    <div class="card">
+        <header class="card-header">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-6 mb-lg-0 mb-15">
+                    <span>
+                        <i class="material-icons md-calendar_today"></i> <b>{{order.created_at}}</b>
+                    </span> <br>
+                    <small class="text-muted">Order ID: {{order.order_number}}</small>
+                </div>
+                
+                <div class="col-lg-6 col-md-6 ms-auto text-md-end">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <form method="post">
+                                {% csrf_token %}
+                                    {{form.status}}
+                            
+                                    </div>
+                                    {% if order.status == 'Cancelled' %}
+                                    <span>{{order.order_id}} is cancelled</span>
+                                    {% elif order.status == 'Return' %}
+                                    <span>{{order.order_id}} is Returned</span>
+                                    {% else %}
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                    {% endif %}
+                                </form>
+            
+                    </div>
+                </div>
+            
+            </div>
+        </header> <!-- card-header end// -->
+        <div class="card-body">
+            <div class="row mb-50 mt-20 order-info-wrap">
+                <div class="col-md-6">
+                    <article class="icontext align-items-start">
+                        <span class="icon icon-sm rounded-circle bg-primary-light">
+                            <i class="text-primary material-icons md-person"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1">Customer</h6>
+                            <p class="mb-1">
+                                {{order.user.username}} <br>{{order.user.email}} <br> {{order.user.phone}}
+                            </p>
+                           
+                        </div>
+                    </article>
+                </div> <!-- col// -->
+                
+                <div class="col-md-6">
+                    <article class="icontext align-items-start">
+                        <span class="icon icon-sm rounded-circle bg-primary-light">
+                            <i class="text-primary material-icons md-place"></i>
+                        </span>
+                        <div class="text">
+                            <h6 class="mb-1">Deliver to</h6>
+                            <p class="mb-1">
+                                <address> 
+                                    {{ address.name}}<br>
+                                    {{ address.address }} <br>
+                                    {{address.district }} <br>
+                                     {{ address.phone}}<br>
+                                    pincode: {{ address.pincode }}</address> 
+                            </p>
+                           
+                        </div>
+                    </article>
+                </div> <!-- col// --> 
+            </div> <!-- row // -->
+            <div class="row">
+                <div class="col-lg-7">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th width="40%">Product</th>
+                                    <th width="20%">Unit Price</th>
+                                    <th width="20%">Quantity</th>
+                                    {% comment %} <th width="20%" class="text-end">Total</th> {% endcomment %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order_item in order_items %}
+                                <tr>
+                                    <td>
+                                        <a class="itemside" href="#">
+                                            <div class="left">
+                                                <img src="{{ order_item.variations.image.url }}" width="80" height="80" class="img-xs" alt="Item">
+                                            </div>
+                                            <div class="info"> {{ order_item.variations.product }} </div>
+                                        </a>
+                                    </td>
+                                    <td> ₹{{ order_item.product_price }} </td>
+                                    <td>{{ order_item.quantity }}</td>
+                                    {% comment %} <td class="text-end"> ${{ order_item.sub_total }} </td> {% endcomment %}
+                                </tr>
+                                {% endfor %}  
+
+
+                                <tr>
+                                    <td colspan="2">
+
+                                        <article class="float-end">
+                                            <dl class="dlist">
+                                                <dt><b class="h5">Grand total:</b></dt>
+                                                <dd> <b class="h5">₹{{ order.order_total }}</b> </dd>
+                                            </dl>
+                                           
+                                        </article>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div> <!-- table-responsive// -->
+                </div> <!-- col// -->
+                <div class="col-lg-1"></div>
+                <div class="col-lg-4">
+                    <div class="box shadow-sm bg-light">
+                        <h6 class="mb-15">Payment info</h6>
+                        <p>
+                           {{order.payment.payment_method}}
+                        </p>
+                    </div>
+                    <div class="box shadow-sm bg-light">
+                        <h6 class="mb-15">Status</h6>
+                        <p><span class="badge rounded-pill 
+                            {% if order.status == 'Conformed' %} 
+                            bg-primary 
+                        {% elif order.status == 'Shipped' %}
+                            bg-info
+                        {% elif order.status == 'Delivered' %}
+                            bg-success
+                        {% elif order.status == 'Cancelled' %}
+                            bg-danger
+                        {% else %}
+                        bg-secondary
+                        {% endif %}
+                            ">{{order.status}}</span>
+                        </p>
+                    </div>
+                    
+                </div> <!-- col// -->
+            </div>
+        </div> <!-- card-body end// -->
+    </div> <!-- card end// -->
+</section>
+
 {% endblock %}

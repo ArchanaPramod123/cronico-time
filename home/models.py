@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser,BaseUserManager,Permissi
 from django.core.validators import FileExtensionValidator
 from django.utils.safestring import mark_safe
 from django.utils import timezone
+
 # from .views import 
 
 
@@ -86,6 +87,7 @@ class category(models.Model):
     
 class Brand(models.Model):
     brand_name = models.CharField(max_length=255,unique=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self) :
         return self.brand_name
@@ -161,24 +163,12 @@ class ProductAttribute(models.Model):
     def image_tag(self):
         return mark_safe('<img src="%s" width="50" height="50" />' % self.image.url)
     
-class CartItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    product = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    total=models.BigIntegerField(null=True)
-    timestamp = models.DateTimeField(default=timezone.now,null=True)
-    is_deleted = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.product.product.product_name}"
-    def get_subtotal(self):
-        return self.product.price * self.quantity
-    
-    def get_total_price(self):
-        if self.items.exists():
-            return sum(item.get_subtotal() for item in self.items.all())
-        else:
-            return 0
-  
-    
+
+class Wishlist(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+
+class WishlistItems(models.Model):
+    wishlist = models.ForeignKey(Wishlist, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
 

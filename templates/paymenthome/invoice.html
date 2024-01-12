@@ -1,0 +1,135 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .bill {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .bill-details {
+            margin-bottom: 20px;
+        }
+        .product-list {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .product-list th, .product-list td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+        .product-list th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            text-align: right;
+        }
+        .print-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+        @media print {
+            /* Adjust styles for printing */
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .bill {
+                width: 800px;
+                margin: 0;
+                padding: 0;
+                border: none;
+                border-radius: 0;
+            }
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="bill mt-5">
+        <div class="header">
+            <h1>Order Invoice</h1>
+        </div>
+        <div class="bill-details">
+            <p><strong>Order ID:</strong> ORD{{order.order_number}}</p>
+            <p><strong>Order Date:</strong> {{order.created_at}}</p>
+            <p><strong>Customer Name:</strong> {{order.user.username}}</p>
+            <p><strong>Payment method :</strong>{{order.payment.payment_method}}</p>
+            <!-- {% if order.payment_method.method != "COD" %}
+                <p><strong>Payment Status :</strong> {% if is_paid %}Paid{% else %}Pending{% endif %}</p>
+            {% endif %} -->
+        </div>
+        <table class="product-list">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in orders  %}
+                <tr>
+                    <td>{{item.variations.product}}</td>
+    
+                    {% comment %} {% if item.product_variant.product.product_offer is not None and item.product_variant.product.product_offer > 0  %}
+                                         <td class="price" data-title="Price"><span>${{ item.product_variant.product.product_offer }}</span></td>
+                                    {% else %}   {% endcomment %}
+                                    <td class="price" data-title="Price"><span>${{ item.product_price }}</span></td>
+                                    {% comment %} {% endif %}   {% endcomment %}
+                                    <td>{{item.quantity}}</td>
+                                    <td>{{item.subtotal}}</td>
+                    
+                    
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <div class="total">
+            {% comment %} <p><strong>Tax: ${{tax}}</strong></p> {% endcomment %}
+            {% comment %} {% if descount %}
+            <p><strong>Coupen Descount: ${{descount}}</strong></p>
+          {% endif %} {% endcomment %}
+            <p><strong>Order Total: ${{grand_total }}</strong></p>
+           
+        </div>
+        
+        <div class="print-button">
+            <button onclick="printBill()" class=" btn btn-dark h-auto border rounded">Print</button>
+        </div>
+    </div>
+    <script>    
+        function printBill() {
+            document.querySelector('.print-button').style.display = 'none';
+            window.print();
+            document.querySelector('.print-button').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+

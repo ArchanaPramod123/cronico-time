@@ -1,0 +1,80 @@
+{% extends 'paymenthome/base.html'%}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/latest/css/all.min.css" integrity="actual-integrity-value" crossorigin="anonymous" />
+
+
+
+<main class="main">
+    
+    <section class="mt-50 mb-50">
+        <div class="container">
+           
+            <div class="row">
+                <div class="col-12">
+                    <div class="divider mt-50 mb-50"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-25">
+                        <h4>Billing Address</h4>
+                    </div>
+                    
+                    <div>
+                        
+                        <p>Name: {{ order.selected_address.name }}</p>
+                        <p>Address: {{ order.selected_address.address }}</p>
+                        <p>Phone: {{ order.selected_address.phone }}</p>
+                        <p>District: {{ order.selected_address.district }}</p>
+                        <p>Pincode: {{ order.selected_address.pincode }}</p>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="order_review">
+                        <div class="mb-20">
+                            <h4>Your Orders</h4>
+                        </div>
+                        <div class="table-responsive order_table text-center">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Color</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in product_orders %}
+                                    <tr>
+                                        <td class="image product-thumbnail"><img src="{{ item.variations.image.url }}" alt="{{ item.product.product_name }}"></td>
+                                        <td>{{ item.product.product_name }}</td>
+                                        <td>{{ item.variations.color }}</td>
+                                        <td>₹{{ item.product_price }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                        <div class="font-xl text-brand fw-900">Total: ₹{{ order.order_total }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                <a href="{% url 'invoice' order.id %}">Download Invoice</a>
+              </div>
+            
+        
+    </section>
+   
+
+
+
+    
+</main>
+{% endblock %}

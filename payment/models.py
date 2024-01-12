@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from home.models import User,CartItem,Product,ProductAttribute
+from home.models import User,Product,ProductAttribute
 
 
 
@@ -17,18 +17,43 @@ class Address(models.Model):
     def __str__(self):
         return self.name
     
-class Wallet(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-   
+class CartItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductAttribute, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    total=models.BigIntegerField(null=True)
+    timestamp = models.DateTimeField(default=timezone.now,null=True)
+    address = models.ForeignKey(Address, null=True, blank=True, on_delete=models.SET_NULL)
+    is_deleted = models.BooleanField(default=False)
 
-    def str(self):
-        return f"Wallet for {self.user.username}"
+    def __str__(self):
+        return f"{self.user.username} - {self.product.product.product_name}"
+    def get_subtotal(self):
+        return self.product.price * self.quantity
+    
+    def get_total_price(self):
+        if self.items.exists():
+            return sum(item.get_subtotal() for item in self.items.all())
+        else:
+            return 0
+
+    
+class Wallet(models.Model):
+    user=models.OneToOneField(User, on_delete=models.CASCADE)
+    balance=models.IntegerField(default=0)
+    
+class WalletHistory(models.Model):
+    wallet=models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    type=models.CharField(null=True, blank=True, max_length=20)
+    created_at=models.DateField(auto_now_add=True)
+    amount=models.IntegerField()
+
     
 class Payments(models.Model):
     payment_choices=(
         ('COD','COD'),
         ('Razorpay','Razorpay'),
+        ('Wallet','Wallet'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -38,57 +63,37 @@ class Payments(models.Model):
     status = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def _str_(self):
+    def __str__(self):
         # return f"{self.user.name}--{self.payment_method}"
         return self.user.first_name
     
 class CartOrder(models.Model):
     STATUS =(
         ('New','New'),
-        ('Accepted','Accepted'),
+        ('Paid','Paid'),
+        ('Shipped','Shipped'),
+        ('Conformed','Conformed'),
         ('Pending','Pending'),
         ('Delivered','Delivered'),
         ('Cancelled','Cancelled'),
-        ('Rejected','Rejected'),
+        ('Return','Return')
     )
     user=models.ForeignKey(User,on_delete=models.SET_NULL,null=True)
-    # orderitem=models.ForeignKey(CartItem, on_delete=models.CASCADE,default=None)
     payment=models.ForeignKey(Payments,on_delete=models.SET_NULL,blank=True,null=True)
     order_number = models.CharField(max_length=20,default=None)
     order_total = models.FloatField(null=True, blank=True)
     status=models.CharField(max_length=10, choices=STATUS, default='New')
     ip =  models.CharField(blank=True,max_length=20)
-    is_ordered=models.BooleanField(default=False)
-    created_at = models.DateTimeField(default=timezone.now,)
-    updated_at=models.DateTimeField(default=timezone.now,)
+    is_ordered=models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
     selected_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
-    # discount=models.FloatField(null=True)
-    paymenttype=models.CharField(max_length=100,null=True)
+
     class Meta:
         verbose_name_plural = "Cart Order"
     
-    def _str_(self):
+    def __str__(self):
         return self.order_number
-  
-#   user = models.ForeignKey(User, on_delete=models.CASCADE)
-#   orderitem=models.ForeignKey(CartItem, on_delete=models.CASCADE,default=None)
-#   total_amt = models.DecimalField(max_digits=10, decimal_places=2, default="1.99")
-#   status = models.CharField(max_length=50,choices=STATUS,default='New')
-#   payment = models.ForeignKey(Payments, on_delete=models.SET_NULL, blank=True, null= True)
-#   # paid_status = models.BooleanField(default=True)
-#   # order_date = models.DateTimeField(auto_now_add=True)
-#   address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True)
-#   product_status = models.CharField(choices=STATUS, max_length=30, default="processing")
-#   created_at = models.DateTimeField(auto_now_add=True)
-#   updated_at = models.DateTimeField(auto_now=True)
-
-  # def __str__(self):
-  #       return self.user
-#   def __str__(self):
-#         if self.order_number is not None:
-#             return self.order_number
-#         else:
-#             return "No order number available"
 
 class ProductOrder(models.Model):
     order=models.ForeignKey(CartOrder,on_delete=models.SET_NULL, null=True)
@@ -99,28 +104,7 @@ class ProductOrder(models.Model):
     product_price=models.FloatField(default=0)
     ordered=models.BooleanField(default=False)
     created_at=models.DateTimeField(auto_now_add=True)
-    updated_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
     variations =  models.ForeignKey(ProductAttribute, on_delete=models.CASCADE, null=True)
-    def _str_(self):
+    def __str__(self):
         return self.product.product_name
-
-    
-    # def str(self):
-    #     return f"{self.product} - {self.quantity}"
-
-# class CartOrderItems(models.Model):
-#   order = models.ForeignKey(CartOrder, on_delete=models.CASCADE)
-#   invoice_no = models.CharField(max_length=200)
-#   item = models.CharField(max_length=200)
-#   image = models.CharField(max_length=200)
-#   qty = models.IntegerField(default=0)
-#   price = models.FloatField()
-#   total = models.FloatField()
-#   class Meta:
-#     verbose_name_plural = "Cart Order Items"
-#   # def __str__(self):
-#   #       return self.invoice_no
-
-#   def image_tag(self):
-#     return mark_safe('<img src="/media/%s" width="50" height="50" />' % (self.image))
-    

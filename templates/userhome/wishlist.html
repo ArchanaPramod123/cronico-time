@@ -1,0 +1,70 @@
+{% extends "userhome/base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="main">
+    {% if not wishlist_items %}
+    <div class="mb-200 mt-200">
+        <div class="text-center">
+            <h4>Your wishlist is empty !!!!!</h4>
+        </div>
+        <div class="text-center mb-10">
+            <a href="{% url 'user_index' %}" class="btn">Continue Shopping</a>
+        </div>
+    </div>
+        
+        
+    {% else %}
+
+    <section class="mt-50 mb-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table shopping-summery text-center">
+                            <thead>
+                                <tr class="main-heading">
+                                    <th scope="col" colspan="2">Product</th>
+                                    <th scope="col">Price</th>
+                                
+                                    <th scope="col">Action</th>
+                                    <th scope="col">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for list in wishlist_items %}
+                                <tr>
+                                    <td class="image product-thumbnail"><a href="{% url 'product_details' list.product.id 0 %}"><img src="{{list.product.productattribute_set.first.image.url}}" alt="#"></a> </td>
+                                    <td class="product-des product-name">
+                                        <h5 class="product-name"><a href="shop-product-right.html">{{list.product.product_name}}</a></h5>
+                                        <p class="font-xs">{{list.product.product_catg.category_name}}<br>
+                                        </p>
+                                    </td>
+                                    <td class="price" data-title="Price">
+                                        {% if list.product.product_offer is not None and list.product.product_offer > 0 %}
+                                        <span>${{list.product.product_offer}}</span>
+                                        {% else %}
+                                        <span>${{list.product.productattribute_set.first.price}}</span>
+                                        {% endif %}
+                                    </td>
+                
+                                    <td class="text-right" data-title="Cart">
+                                        <a href="{% url 'product_details' product_id=list.product.id category_id=list.product.category.id %}" class="btn btn-sm">view</a>
+
+                                        {% comment %} <a href="{% url 'product_details' list.id %}" class="btn btn-sm">view</a> {% endcomment %}
+                                    </td>
+                                    <td class="action" data-title="Remove"><a href="{% url 'delete_wishlist' list.id %}"><i class="fi-rs-trash"></i></a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+
+{% endblock %}

@@ -94,25 +94,30 @@
                                         <td>
                                             <h5><a href="shop-product-full.html">{{ item.name }}</a></h5> <span class="product-qty">x {{item.quantity}}</span>
                                         </td>
-                                        <td>${{item.total}}</td>
+                                        <td>₹{{item.total}}</td>
                                     </tr>
                                     {% endfor %}
                                 </form>
                                    
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">${{total }}</span></td>
+                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">₹{{total }}</span></td>
                                     </tr>
                                     
                                 </tbody>
                             </table>
                         </div>
                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                        <form method="post" action="{% url 'wallet_place_order' %}" id="wallet-form">
+                            {% csrf_token %}
+                            <!-- Add any additional fields if needed -->
+                            <button type="submit" class="btn btn-primary">Wallet</button>
+                        </form>
                         <div>
                             
                                 {% comment %} <input type="hidden" name="total" value="{{ total }}">
                                 <input type="hidden" name="cart_id" value="{{ cart_id }}"> {% endcomment %}
-                                <a href="{% url 'place_order'%}"><button type="submit" class="btn btn-primary">Cash on delivery</button></a>
+                                <a href="{% url 'place_order'%}"><button type="submit" id="cod-btn" class="btn btn-primary">Cash on delivery</button></a>
                         
                         </div>
                         <div class="btn_container">
@@ -127,6 +132,15 @@
                             
 
                           </div>
+                          {% if messages %}
+                                        <div class="messages">
+                                            <ul class="messages">
+                                                {% for message in messages %}
+                                                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
                     </div>
                 </div>
             </div>
@@ -171,9 +185,37 @@
       rzp1.open();
       e.preventDefault();
     };
-    
+    {% comment %} document.getElementById("cod-btn").onclick = function (e) {
+        // Perform any COD-specific actions here (e.g., server-side verification)
+
+        // Show sweet alert for COD success
+        Swal.fire({
+            icon: 'success',
+            title: 'Payment Successful!',
+            text: 'Thank you for your order. Your payment was successful.',
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'View Order Details'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Redirect to the order details page
+                window.location.href = "{% url 'order_success' %}";
+            }
+        });
+
+        // Prevent the default form submission
+        e.preventDefault();
+    }; {% endcomment %}
+    document.getElementById("wallet-form").onclick = function (e) {
+        // Prevent the default form submission for the wallet button
+        e.preventDefault();
+        // Submit the wallet form using AJAX or other logic if needed
+        document.getElementById("wallet-form").submit();
+    };
+
 
   </script>
+  
+
   
 
     

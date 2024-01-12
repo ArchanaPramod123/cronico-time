@@ -4,7 +4,7 @@
 <section class="content-main">
     <div class="content-header">
         <div>
-            <h2 class="content-title card-title">Categories</h2>
+            <h2 class="content-title card-title">Brand</h2>
            
         </div>
         <div>
@@ -21,9 +21,7 @@
                             <label for="product_name" class="form-label">Name</label>
                             <input type="text" placeholder="Type here" name='name' class="form-control" id="product_name" />
                         </div>
-
-        
-
+                        
                         <div class="d-grid">
                             <button class="btn btn-primary">Add brand</button>
                         </div>
@@ -69,8 +67,26 @@
                                         <td class="text-end">
                                             <a href="{% url 'admin_brand_edit' obj.id%}" class="btn btn-sm btn-warning rounded font-sm mt-15">Edit</a>
                                         </td>
-                                        <td class="text-end">
-                                            <a href="#" class="btn btn-sm btn-warning rounded font-sm mt-15">block</a>
+                                        {% comment %} <td class="text-end">
+                                            {% if obj.is_active %}
+                                                <a href="{% url 'admin_block_brand' id=obj.id %}" class="btn btn-sm btn-danger rounded font-sm mt-15">Block</a>
+                                            {% else %}
+                                                <a href="{% url 'admin_block_brand' id=obj.id %}" class="btn btn-sm btn-warning rounded font-sm mt-15">Unblock</a>
+                                            {% endif %}
+                                        </td> {% endcomment %}
+                                        <td>
+                                            <button  class="{% if not obj.is_active %}btn btn-outline-danger{% else %}btn btn-outline-success{% endif %}">
+                                                {% if not obj.is_active %}Not Available {% else %}Available{% endif %}
+                                            </button>
+                                        </td>
+                                        <td class="text-end" >
+                                            <div class="dropdown">
+                                                <a href="#" data-bs-toggle="dropdown" class="btn btn-light rounded btn-sm font-sm"> <i class="material-icons md-more_horiz"></i> </a>
+                                                <div class="dropdown-menu"> 
+                                                    <a class="dropdown-item" href="{% url 'brand_available' obj.id %}">{% if not obj.is_active %}Mark Available {% else %}Mark Unavailable{% endif %}</a>
+                                                    {% comment %} <a class="dropdown-item text-danger" href="{% url 'product_details:delete_brand' brand.id %}">Delete</a> {% endcomment %}
+                                                </div>
+                                            </div> <!-- dropdown //end -->
                                         </td>
                                     </tr>
                                 {% endfor %}

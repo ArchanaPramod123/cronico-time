@@ -78,7 +78,7 @@
                         </td>
                         <td >
                             {% if obj.productattribute_set.first.price %}
-                        <span>${{ obj.productattribute_set.first.price }}</span>               
+                        <span>₹{{ obj.productattribute_set.first.price }}</span>               
                         {% else %}
                         <p>No Price available</p>
                         {% endif %}

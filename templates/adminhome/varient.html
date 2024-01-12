@@ -22,10 +22,11 @@
                 </div>
                 <div class="col-md-3 col-12 me-auto mb-md-0 mb-3">
                     <select class="form-select">
+                    
                         <option selected>All category</option>
-                        <option>Electronics</option>
-                        <option>Clothes</option>
-                        <option>Automobile</option>
+                        {%for cate in cat%}
+                        <option>{{cate.category_name}}</option>
+                        {%endfor%}
                     </select>
                 </div>
                 <div class="col-md-2 col-6">
@@ -73,7 +74,7 @@
                             </div>
                         </a>
                     </div>
-                    <div class="col-lg-2 col-sm-2 col-4 col-price"> <span>${{obj.price}}</span> </div>
+                    <div class="col-lg-2 col-sm-2 col-4 col-price"> <span>₹{{obj.price}}</span> </div>
                     <div class="col-lg-2 col-sm-2 col-4 col-status">
                         <span class="badge rounded-pill alert-success">{{obj.is_available}}</span>
                     </div>

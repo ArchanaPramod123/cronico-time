@@ -1,0 +1,170 @@
+{% extends 'userhome/base.html'%}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/latest/css/all.min.css" integrity="actual-integrity-value" crossorigin="anonymous" />
+
+
+
+<main class="main">
+    
+    <section class="mt-50 mb-50">
+        <div class="container">
+           
+            <div class="row">
+                <div class="col-lg-4">
+                    <div class="row">
+                        <div class="card p-3 ">
+                            <h4 class="card-title text-center">Order Details</h4>
+                            <br>
+                            <table class="table borderless-table">
+                               
+                                <tr>
+                                    <th>Order Id</th>
+                                    <td>{{order.order_number}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Total amount</th>
+                                    <td>₹{{order.order_total}}</td>
+                                </tr>
+                                <tr>
+                                    <th>Type of payment</th>
+                                        <td>{{order.payment.payment_method}}</td>
+                                   
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td><span class="badge rounded-pill 
+                                        {% if order.status == 'Conformed'%} bg-primary {% elif order.status == 'Shipped' %} bg-info {% elif order.status == 'Delivered' %}bg-success
+                                        {% elif order.status == 'Cancelled' %} bg-danger {% else %} bg-secondary {% endif %}
+                                        ">{{order.status}}</span></td>
+                                </tr>
+                               
+                            </table>
+                            {% if order.status == 'Delivered' %}
+                            <a class="btn btn-sm return-order" href="{% url 'return_order' order.id %}">Return Order</a>
+                            
+                            {% elif order.status == 'Cancelled' %}
+                            <span>Your order with reference {{order.order_number}} is cancelled</span>
+                            {% elif order.status == 'Return' %}
+                            <span>Your order with reference {{order.order_number}} is Returned</span>
+                            {% else %}
+                            <a class="btn btn-sm cancel-order" href="{% url 'cancell' order.id %}">Cancel Order</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="card p-3">
+                            <h4 class="card-title text-center">Address</h4>
+                            <br>
+                            <div>
+                        
+                                <p>Name: {{ order.selected_address.name }}</p>
+                                <p>Address: {{ order.selected_address.address }}</p>
+                                <p>Phone: {{ order.selected_address.phone }}</p>
+                                <p>District: {{ order.selected_address.district }}</p>
+                                <p>Pincode: {{ order.selected_address.pincode }}</p>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+        
+                <div class="col-md-8">
+                        <div class="table-responsive order_table text-center">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Name</th>
+                                        <th>Color</th>
+                                        <th>Price</th>
+                                        <th>Quantity</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in product_orders %}
+                                    <tr>
+                                        <td class="image product-thumbnail"><img src="{{ item.variations.image.url }}" alt="{{ item.product.product_name }}"></td>
+                                        <td>{{ item.product.product_name }}</td>
+                                        <td>{{ item.variations.color }}</td>
+                                        <td>₹{{ item.product_price }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>₹{{ item.subtotal }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                        <div class="font-xl text-brand fw-900 ">Total: ₹{{ order.order_total }}</div>
+                    </div>
+                </div>
+            </div>
+        
+    </section>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cancelOrderLinks = document.querySelectorAll('.cancel-order');
+            cancelOrderLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderUrl = this.getAttribute('href');
+                    confirmCancelOrder(orderUrl);
+                });
+            });
+        });
+    
+        function confirmCancelOrder(orderUrl) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You are about to cancel this order!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, cancel it!'
+            }).then((result) => {   
+                if (result.isConfirmed) {
+                    window.location.href = orderUrl; // Redirect to the cancel order URL
+                }
+            });
+        }
+    </script>
+    
+    
+    {% comment %} <script> {% endcomment %}
+        {% comment %} document.addEventListener('DOMContentLoaded', function() {
+            const cancelOrderLinks = document.querySelectorAll('.cancel-order');
+            cancelOrderLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const orderUrl = this.getAttribute('href');
+                    confirmCancelOrder(orderUrl);
+                });
+            });
+        }); {% endcomment %}
+    
+        {% comment %} function confirmCancelOrder(orderUrl) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You are about to cancel this order!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, cancel it!'
+            }).then((result) => {   
+                if (result.isConfirmed) {
+                    window.location.href = orderUrl; // Redirect to the cancel order URL
+                }
+            });
+        } {% endcomment %}
+    {% comment %} </script> {% endcomment %}
+
+
+
+    
+</main>
+{% endblock %}

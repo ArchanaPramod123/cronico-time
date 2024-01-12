@@ -1,0 +1,66 @@
+{% extends "adminhome/base.html" %}
+{% load static %}
+{% block content %}
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Product Offer</h2>
+            <p>Add Offer</p>
+        </div>
+        <div>
+            {% for message in messages %}
+                    <div class="alert alert-danger" role="alert">
+                        {{message}}
+                    </div>
+                    {% endfor %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+                <div class="col-md-9">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Product</th>
+                                    <th>End Date</th>
+                                    <th>Image</th>
+                                    <th>Is Active</th>
+                                    <th>action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for offer in product_offers %}
+                                <tr>
+                                    <td>{{ offer.title }}</td>
+                                    <td>{{ offer.product.product_name }}</td>
+                                    <td>{{ offer.end_date }}</td>
+                                    {% if offer.image %}
+                                    <td><img src="{{ offer.image.url }}" alt="Offer Image" style="width: 100px; height: auto;"></td>
+                                    {% else %}
+                                    <td>no image</td>
+                                    {% endif %}
+                                    <td>{{ offer.is_active }}</td>
+                                    <td><a href="{% url 'delete_offer' offer.id %}">Delete</a></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div> <!-- .col// -->
+            </div> <!-- .row // -->
+        </div> <!-- card body .// -->
+    </div> <!-- card .// -->
+</section>
+
+{% endblock %}

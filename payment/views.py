@@ -34,6 +34,9 @@ def checkout(request):
         if 'use_existing_address' in request.POST:
             selected_address_id = request.POST.get('existing_address')
             selected_address = get_object_or_404(Address, id=selected_address_id)
+            # Update the address for all CartItems in the user's cart
+            CartItem.objects.filter(user=user, is_deleted=False).update(address=selected_address)
+
 
             return render(request, 'paymenthome/payment.html', {
                
@@ -46,6 +49,10 @@ def checkout(request):
             address_instance = address_form.save(commit=False)
             address_instance.user = request.user
             address_instance.save()
+
+            # Update the address for all CartItems in the user's cart
+            CartItem.objects.filter(user=user, is_deleted=False).update(address=address_instance)
+
 
             return render(request, 'paymenthome/payment.html', {
              
@@ -152,9 +159,6 @@ def paymenthandler(request):
         # if other than POST request is made, return a bad request response
         return HttpResponseBadRequest()
 
-
-# --------------------------------------------------------
-
 def online_place_order(request):
     user = request.user 
     items = CartItem.objects.filter(user=user, is_deleted=False)
@@ -213,7 +217,7 @@ def online_place_order(request):
 
     return redirect('order_success')
 
-#==================================================payment =========================================================================================================================
+#================================================== payment in COD =========================================================================================================================
 
 def place_order(request):
     print('helooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo')
@@ -272,17 +276,163 @@ def place_order(request):
         orderedproduct.ordered=True
         orderedproduct.save()
         item.delete()  
-
-    # if request.method=='POST':
         
     return redirect('order_success')
+
+#============================= wallet order place=========================================================================================================================================
+def wallet_place_order(request):
+    print("wallettttttttttttttttttt")
+    try:
+        print("insideeeee walletttttttttttttttttttttttttt")
+        user = request.user
+        items = CartItem.objects.filter(user=user, is_deleted=False)
+        total = items.aggregate(total_sum=Sum('total'))['total_sum']
+        address = Address.objects.filter(users=request.user).first()
+
+        # Wallet payment condition
+        try:
+            print("inside the wallet tryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+            wallet = Wallet.objects.get(user=request.user)
+            if total <= wallet.balance:
+                short_id = str(random.randint(1000, 9999))
+                yr = datetime.now().year
+                dt = int(datetime.today().strftime('%d'))
+                mt = int(datetime.today().strftime('%m'))
+                d = datetime(yr, mt, dt).date()
+                current_date = d.strftime("%Y%m%d")
+                short_id = str(random.randint(1000, 9999))
+                order_numbers = current_date + short_id
+
+                var = CartOrder.objects.create(
+                    user=request.user,
+                    order_number=order_numbers,
+                    order_total=total,
+                    selected_address=address,
+                    ip=request.META.get('REMOTE_ADDR')
+                )
+                var.save()
+
+                payment_instance = Payments.objects.create(
+                    user=request.user,
+                    payment_id=f"PAYMENT-{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                    payment_method='Wallet',  # You can update this based on your logic
+                    amount_paid=total,
+                    status='paid',
+                )
+
+                var.payment = payment_instance
+                var.save()
+
+                cart = CartItem.objects.filter(user=request.user)
+
+                for item in cart:
+                    orderedproduct = ProductOrder()
+                    item.product.stock -= item.quantity
+                    item.product.save()
+                    orderedproduct.order = var
+                    orderedproduct.payment = payment_instance
+                    orderedproduct.user = request.user
+                    orderedproduct.product = item.product.product
+                    orderedproduct.quantity = item.quantity
+                    orderedproduct.product_price = item.product.price
+                    product_attribute = ProductAttribute.objects.get(product=item.product.product, color=item.product.color)
+                    orderedproduct.variations = product_attribute
+                    orderedproduct.ordered = True
+                    orderedproduct.save()
+                    item.delete()
+
+                # Deduct amount from wallet balance
+                wallet.balance -= total
+                wallet.save()
+
+                # Log wallet transaction
+                WalletHistory.objects.create(
+                    wallet=wallet,
+                    type='Debit',
+                    amount=total
+                )
+
+                return redirect('order_success')
+
+            else:
+                print("else in teyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+                messages.error(request, 'Wallet balance is less than the total amount')
+                return render(request, 'paymenthome/payment.html', {
+                    'error_message': 'Wallet balance is less than the total amount',
+                    # Add other context variables as needed
+                })
+
+
+        except Wallet.DoesNotExist:
+            print("except in the try            ")
+            messages.error(request, 'Wallet not found for the user')
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+
+    except Exception as e:
+        print("an error occureeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+        print(f"An error occurred: {e}")
+        # Handle the error as needed
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 def order_success(request):
     order = CartOrder.objects.filter(user=request.user).order_by('-id').first()
     print(order) 
+    product_orders = ProductOrder.objects.filter(order=order)
+
     
     context = {
+        'order':order,
         'order_number': order.order_number,
         'order_status': order.status,
+        'product_orders': product_orders,
     }
-    return render(request,'paymenthome/payment_success.html',context)
+    return render(request,'paymenthome/orderdetail.html',context)
+
+
+
+def invoice(request,order_id,total=0):
+    try:
+        order=CartOrder.objects.get(id=order_id)
+        # coupen_id=order.coupen
+        orders=ProductOrder.objects.filter(order=order)
+    except:
+        pass
+    # if coupen_id is not None:
+    #     coupen=Coupon.objects.get(coupon_id=coupen_id)
+    #     descount=coupen.discount_rate
+    grand_total = order.order_total
+    for item in orders:
+        item.subtotal=item.quantity * item.product_price
+        total += item.subtotal
+    # tax=order.tax
+    # if coupen_id is not None:
+    #     grand_total =Decimal(tax + total) - descount
+    #     # descount_total=grand_total - descount
+    # else:
+    #     grand_total = tax + total
+
+    context={
+        'order':order,
+        'orders':orders,
+        'grand_total':grand_total,
+        # 'tax':tax,
+    }
+    # try:
+    #    if descount is not None:
+    #       context['descount'] = descount
+    # except:
+    #     pass
+    return render(request,'paymenthome/invoice.html',context) 
+
+
+# def wallet(request):
+#     try:
+#         wallet = Wallet.objects.get(user=request.user)
+#         if wallet:
+#             print(wallet.balance)
+#     except:
+#         wallet = Wallet.objects.create(user=request.user, balance=0)
+#     return render(request,'paymenthome/wallet.html',{'wallet':wallet})
+
+ 
+

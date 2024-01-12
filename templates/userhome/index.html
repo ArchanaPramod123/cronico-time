@@ -68,6 +68,28 @@
             </div>
             <div class="slider-arrow hero-slider-1-arrow"></div>
         </section>
+        <section class="banners mb-15 mt-15">
+            <div class="container">
+                <div class="row">
+                    {% if product_offers %}
+                    {% for offer in product_offers %}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="banner-img wow fadeIn animated">
+                            <img src="{{offer.image.url}}" alt="">
+                            <div class="banner-text">
+                                <span class="text-white">{{offer.title}}</span>
+                                <h4 class="text-white">Save {{offer.discount}}% on <br>{{offer.product.product_name}}</h4>
+                                <a href="{% url 'shop'%}">Shop Now <i class="fi-rs-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    
+                </div>
+            </div>
+        </section>
         <section class="product-tabs section-padding position-relative wow fadeIn animated">
             <div class="bg-square"></div>
             <div class="container">
@@ -102,9 +124,9 @@
                                             </a>
                                         </div>
                                         <div class="product-action-1">
-                                            <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-eye"></i></a>
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="shop-wishlist.html"><i class="fi-rs-heart"></i></a>
-                                            <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a>
+                                            {% comment %} <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-eye"></i></a> {% endcomment %}
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id %}"><i class="fi-rs-heart"></i></a>
+                                            {% comment %} <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a> {% endcomment %}
                                         </div>
                                         {% comment %} <div class="product-badges product-badges-position product-badges-mrg">
                                             <span class="hot">Hot</span>
@@ -121,14 +143,11 @@
                                             </span>
                                         </div>
                                         <div class="product-price">
-                                            <span class="product-price1">${{ product.productattribute_set.first.price}}</span>
+                                            <span class="product-price1">₹{{ product.productattribute_set.first.price}}</span>
                                             <span class="old-price">{{product.offer_price}}</span>
                                         </div>
                                         <div class="product-action-1 show">
-                                            {% comment %} <input type="number" value="1" class="form-control product-qty-{{product.id}}" id="productQty"/>
-                                            <input type="hidden" class="product-image-one-{{product.id}}" value="{{product.productattribute_set.first.image.url}}"/>
-                                            <input type="hidden" class="product-id-{{product.id}}" value="{{product.id}}"/>
-                                            <input type="hidden" class="product-name-{{product.id}}" value="{{product.product_name}}"/> {% endcomment %}
+
                                             <a aria-label="Add To Cart" data-index="" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
                                         </div>
                                     </div>
@@ -160,7 +179,7 @@
                 </div>
             </div>
         </section>
-       <section class="section-padding">
+       {% comment %} <section class="section-padding">
             <div class="container">
                 <h3 class="section-title mb-20 wow fadeIn animated"><span>Featured</span> Brands</h3>
                 <div class="carausel-6-columns-cover position-relative wow fadeIn animated">
@@ -190,7 +209,7 @@
                     </div>
                 </div>
             </div>
-        </section> 
+        </section>  {% endcomment %}
        
         <section class="mb-50">
             <div class="container">

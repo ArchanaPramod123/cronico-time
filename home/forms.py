@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
-from .models import User, category, Brand, Color, Product, ProductImages, ProductAttribute, CartItem
+from .models import User, category, Brand, Color, Product, ProductImages, ProductAttribute
+from payment.models import CartItem
 from django.core.exceptions import ValidationError
 
 class SignUpForm(UserCreationForm):
