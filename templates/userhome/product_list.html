@@ -1,53 +1,95 @@
 <div class="row product-grid-3">
-    {% for product in products %}
-    <div class="col-lg-3 col-md-4">
-        <div class="product-cart-wrap mb-30">
-            <div class="product-img-action-wrap">
-                <div class="product-img product-img-zoom " style="height: 300px; overflow: hidden;">
-                   
-                    {% comment %} <a href="{% url 'product_details' category_id=product.category.id product_id=product.id %}"> {% endcomment %}
-                        <a href="{% url 'product_details' category_id=product.category.id product_id=product.id %}"> 
-                        {% if product.productattribute_set.first.image %}
-                            <img class="default-img" src="{{ product.productattribute_set.first.image.url }}" alt="" style="width: 100%; height: auto;">
+  {% for product in products %}
+  <div class="col-lg-3 col-md-4">
+      <div class="product-cart-wrap mb-30">
+          <div class="product-img-action-wrap">
+              <div class="product-img product-img-zoom " style="height: 300px; overflow: hidden;">
+                 
+                  <a href="{% url 'product_details' category_id=product.category.id product_id=product.id %}"> 
+                      
+ 
+                      {% if product.productattribute_set.first.image %}
+                          <img class="default-img" src="{{ product.productattribute_set.first.image.url }}" alt="" style="width: 100%; height: auto;">
+                      {% else %}
+                          <!-- Handle the case where the image is missing or not set -->
+                          <p>No Image Available</p>
+                      {% endif %}
+                  </a>
+                  
+                     
+              </div>
+              <div class="product-action-1">
+                  
+                 
+                  <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id%}">
+                      <i class="fi-rs-heart"></i>
+                  </a>
+                  
+              </div>
+              {% if discount_offer is not None and discount_offer.active %}
+                <div class="product-badges product-badges-position product-badges-mrg">
+                    <span class="hot">-{{ discount_offer.discount_percentage|floatformat:0 }}%</span>
+                </div>
+                {% elif discounted_offer %}
+                {% for dis in discounted_offer %}
+                    {% if dis.active and dis.category == product.category %}
+                    <div class="product-badges product-badges-position product-badges-mrg">
+                        <span class="hot">-{{ dis.discount_percentage|floatformat:0 }}%</span>
+                    </div>
                         {% else %}
-                            <!-- Handle the case where the image is missing or not set -->
-                            <p>No Image Available</p>
-                        {% endif %}
-                        {% comment %} <img class="default-img" src="{{ product.image.url }}" alt="" style="width: 100%; height: auto;">
-                        {% comment %} <img class="hover-img" src="{{ product.product_image1.url }}" alt=""> {% endcomment %} 
-                    </a>
+                        <div class="product-badges product-badges-position product-badges-mrg">
+                            <span class="hot">Hot</span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <div class="product-badges product-badges-position product-badges-mrg">
+                    <span class="hot">Hot</span>
                 </div>
-                <div class="product-action-1">
-                    
-                   
-                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id%}">
-                        <i class="fi-rs-heart"></i>
-                    </a>
-                    
-                </div>
-               
-            </div>
-            <div class="product-content-wrap">
-                <div class="product-category">
-                    <a href="shop-grid-right.html">{{ product.category }}</a>
-                </div>
-                <h2><a href="{% url 'products_by_category' category_id=product.category.id %}">{{ product.product_name }}</a></h2>
-                <div class="rating-result" title="90%">
-                    <span>
-                        <span>90%</span>
-                    </span>
-                </div>
-                <div class="product-price">
-                    <span class="product-price1">₹{{ product.productattribute_set.first.price}}</span>
-                    {% comment %} <span class="old-price">$245.8</span> {% endcomment %}
-                </div>
-                <div class="product-action-1 show">
-                    <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html">
-                        <i class="fi-rs-shopping-bag-add"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
+            {% endif %}
+             
+          </div>
+          <div class="product-content-wrap">
+              <div class="product-category">
+                  <a href="shop-grid-right.html">{{ product.category }}</a>
+              </div>
+              
+
+              <h2><a href="#">{{ product.product_name }}</a></h2>
+              {% comment %} <div class="rating-result" title="90%">
+                  <span>
+                      <span>90%</span>
+                  </span>
+              </div> {% endcomment %}
+              {% if discount_offer is not None and discount_offer.active %}
+              <div class="product-price">
+                  <span class="current-product-price-{{product.id}}">₹{{product.productattribute_set.first.price}}</span>
+                  <span class="old-price">₹{{product.productattribute_set.first.old_price}}</span>
+              </div>
+          {% elif discounted_offer %}
+              {% for dis in discounted_offer %}
+                  {% if dis.active and dis.category == product.category %}
+                      <div class="product-price">
+                          <span>₹ <span class="current-product-price-{{product.id}}">{{product.productattribute_set.first.price}}</span></span>
+                          ₹<span class="old-price">{{product.productattribute_set.first.old_price}}</span>
+                      </div>
+                      {% else %}
+                      <div class="product-price">
+                          <span>₹ <span class="current-product-price-{{product.id}}">{{product.productattribute_set.first.price}}</span></span>
+                          
+                      </div>
+                  {% endif %}
+              {% endfor %}
+          {% else %}
+              <div>
+                  <span style="font-size: large;">
+                      ₹<span class="current-product-price-{{product.id}} text-success" style="font-weight: bold;">{{product.productattribute_set.first.price}}</span>
+                  </span>
+              </div>
+          {% endif %}
+
+          </div>
+      </div>
+  </div>
+  {% endfor %}
 </div>

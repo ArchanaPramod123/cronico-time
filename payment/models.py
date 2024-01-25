@@ -47,6 +47,7 @@ class WalletHistory(models.Model):
     type=models.CharField(null=True, blank=True, max_length=20)
     created_at=models.DateField(auto_now_add=True)
     amount=models.IntegerField()
+    reason = models.CharField(max_length=255,blank=True,null=True)
 
     
 class Payments(models.Model):
@@ -85,7 +86,8 @@ class CartOrder(models.Model):
     status=models.CharField(max_length=10, choices=STATUS, default='New')
     ip =  models.CharField(blank=True,max_length=20)
     is_ordered=models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    # created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=True)
     updated_at=models.DateTimeField(auto_now=True)
     selected_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
 

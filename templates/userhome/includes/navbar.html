@@ -80,11 +80,14 @@
                     <div class="main-menu main-menu-grow main-menu-padding-1 main-menu-lh-1 main-menu-mrg-1 hm3-menu-padding d-none d-lg-block hover-boder">
                         <nav>
                             <ul>
-                                <li><a class="active" href="{% url 'user_index'%}">Home <i class="fi-rs-angle-down"></i></a>
+                                <li><a class="active" href="{% url 'user_index'%}">Home </a>
                                     
                                 </li>
-                                <li><a href="{% url 'shop'%}">Shop <i class="fi-rs-angle-down"></i></a>
+                                <li><a href="{% url 'shop'%}">Shop </a>
                                    
+                                </li>
+                                <li><a href="{% url 'user_index'%}#about-section">About </a>
+                                    
                                 </li>
                                 
                             </ul>
@@ -94,26 +97,25 @@
                         <div class="search-style-2">
                             <form action="/search">
                                 <input type="text" name="q" class="form-control" placeholder="Search ">
-                                <div class="input-group-append">
+                                {% comment %} <div class="input-group-append">
                                     <button class="btn btn-outline-secondary" type="button" id="btton-addon2">Search</button>
-                                </div>
+                                </div> {% endcomment %}
                             </form>
                         </div> 
                         
                         <div class="header-action-2">
                             <div class="header-action-icon-2">
-                                <a href="shop-wishlist.html">
-                                   
-                                    <a href="{% url 'wishlist' %}">
-                                    <img class="svgInject" alt="Evara" src="{% static 'assets/imgs/theme/icons/icon-heart.svg'%}">
+                                <a href="{% url 'wishlist' %}">
+                                    <img class="svgInject" alt="Evara" src="{% static 'assets/imgs/theme/icons/icon-heart.svg' %}">
                                     <span class="pro-count blue">{{wishlist_count}}</span>
-                                    </a>
-                                </a>
+                                </a> 
+                                
                             </div>
                             <div class="header-action-icon-2">
                                 <a class="mini-cart-icon " href="{% url 'cart'%}">
                                     <img alt="Evara" src="{% static 'assets/imgs/theme/icons/icon-cart.svg'%}">
-                                    <span class="pro-count blue" class="cart-list">{{request.session.cartdata|length}}</span>
+                                    <span class="pro-count blue cart-count" data-cart-count="{{ cart_count }}">{{ cart_count }}</span>
+                                    {% comment %} <span class="pro-count blue" class="cart-list">{{cart_count}}</span> {% endcomment %}
                                 </a>
                                 
                             </div>
@@ -130,3 +132,4 @@
             </div>
         </div>
     </header>
+    

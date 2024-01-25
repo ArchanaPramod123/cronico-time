@@ -70,6 +70,13 @@
             <p><strong>Order Date:</strong> {{order.created_at}}</p>
             <p><strong>Customer Name:</strong> {{order.user.username}}</p>
             <p><strong>Payment method :</strong>{{order.payment.payment_method}}</p>
+            <p><strong>Address: </strong>{{ order.selected_address.address }}</p>
+            <p><strong>Phone: </strong>{{ order.selected_address.phone }}</p>
+            <p><strong>District: </strong>{{ order.selected_address.district }}</p>
+            <p><strong>Pincode: </strong>{{ order.selected_address.pincode }}</p>
+
+
+
             <!-- {% if order.payment_method.method != "COD" %}
                 <p><strong>Payment Status :</strong> {% if is_paid %}Paid{% else %}Pending{% endif %}</p>
             {% endif %} -->
@@ -91,10 +98,10 @@
                     {% comment %} {% if item.product_variant.product.product_offer is not None and item.product_variant.product.product_offer > 0  %}
                                          <td class="price" data-title="Price"><span>${{ item.product_variant.product.product_offer }}</span></td>
                                     {% else %}   {% endcomment %}
-                                    <td class="price" data-title="Price"><span>${{ item.product_price }}</span></td>
+                                    <td class="price" data-title="Price"><span>₹{{ item.product_price }}</span></td>
                                     {% comment %} {% endif %}   {% endcomment %}
                                     <td>{{item.quantity}}</td>
-                                    <td>{{item.subtotal}}</td>
+                                    <td>₹{{item.subtotal}}</td>
                     
                     
                     
@@ -104,11 +111,8 @@
         </table>
         <br>
         <div class="total">
-            {% comment %} <p><strong>Tax: ${{tax}}</strong></p> {% endcomment %}
-            {% comment %} {% if descount %}
-            <p><strong>Coupen Descount: ${{descount}}</strong></p>
-          {% endif %} {% endcomment %}
-            <p><strong>Order Total: ${{grand_total }}</strong></p>
+            
+            <p><strong>Order Total: ₹{{grand_total }}</strong></p>
            
         </div>
         

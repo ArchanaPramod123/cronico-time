@@ -1,6 +1,153 @@
 {% extends "adminhome/base.html" %}
 {% load static %}
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Products Varient List</h2>
+        </div>
+        <div>
+            
+            <a href="{% url 'admin_varient_add'%}" class="btn btn-primary btn-sm rounded">Add Varient</a>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <header class="card-header">
+            <div class="row align-items-center">
+               
+            </div>
+        </header> <!-- card-header end// -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>image</th>
+                        <th>Product Name</th>
+                        <th>Is available</th>
+                        
+                        <th>price</th>
+                        <th>old price</th>
+                        <th>varient</th>
+                        <th>stock</th>
+
+                        <th class="text-end"> Action </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for obj in item %}
+                    <tr>
+                        <td >
+                            {% comment %} <a href="#" class="btn btn-sm btn-brand rounded font-sm mt-15">block</a> {% endcomment %}
+                            {% if obj.image %}
+                                        <img src="{{ obj.image.url }}" class="img-sm img-thumbnail" alt="Item">
+                                    {% else %}
+                                        <p>No image available</p>
+                                    {% endif %}
+                        </td>
+                        <td width="40%">
+                            <a href="#" class="itemside">
+                                <div class="left">
+                                    {% comment %} <img src="{% static 'assets1/imgs/people/im.png' %}" class="img-sm img-avatar" alt="Userpic"> {% endcomment %}
+                                </div>
+                                <div class="info pl-3">
+                                    <h6 class="mb-0 title">{{obj.product}}</h6>
+                                    
+                                    
+                                </div>
+                            </a>
+                        </td>
+                       
+                        <td><span class="badge rounded-pill alert-success">{{obj.is_available}}</span></td>
+                        
+                        <td >
+                            
+                        <span>₹{{obj.price}}</span>               
+                        
+                        </td>
+                        <td>
+                        <span>₹{{obj.old_price}}</span>               
+                        
+                        </td>
+                        <td >
+                            
+                            <span>{{obj.color}}</span>               
+                            
+                            </td>
+                        <td >
+                            
+                            <span>{{obj.stock}}</span>               
+                            
+                            </td>
+                        <td class="col-lg-2 col-sm-2 col-4 col-action text-end">
+                            <a href="{% url 'admin_varient_edit' obj.id %}" class="btn btn-sm font-sm rounded btn-brand">
+                                <i class="material-icons md-edit"></i> Edit
+                            </a>
+                            <form method="post" action="{% url 'admin_varient_delete' obj.id %}" class="delete-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="is_deleted" value="on">
+                                <button type="button" class="btn btn-sm font-sm btn-light rounded delete-btn">
+                                    <i class="material-icons md-delete_forever"></i> Delete
+                                </button>
+                            </form>
+                            <td>
+    
+                    </tr>
+                    {% endfor %}
+                    
+                    
+                </tbody>
+ 
+        
+        </table> <!-- table-responsive.// -->
+    </div> <!-- card end// -->
+    <script>
+        // Ensure this script is placed at the end of the body or after the page has loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            // Attach SweetAlert to the delete button click event
+            var deleteButtons = document.querySelectorAll('.delete-btn');
+            
+            deleteButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var form = this.closest('.delete-form');
+                    
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'You won\'t be able to revert this!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // If user clicks 'Yes', submit the form
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</section>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% extends "adminhome/base.html" %}
+{% load static %}
+{% block content %}
 <section class="content-main">
     <div class="content-header">
         <div>
@@ -103,4 +250,4 @@
         </div> <!-- card-body end// -->
     </div> <!-- card end// -->
 </section>
-{% endblock %}
+{% endblock %} {% endcomment %}

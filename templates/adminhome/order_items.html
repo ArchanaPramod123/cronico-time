@@ -152,6 +152,14 @@
                     </div>
                     
                 </div> <!-- col// -->
+                {% if messages %}
+  <div class="alert alert-{{ messages.tags }}">
+    {% for message in messages %}
+      {{ message }}
+    {% endfor %}
+  </div>
+{% endif %}
+
             </div>
         </div> <!-- card-body end// -->
     </div> <!-- card end// -->

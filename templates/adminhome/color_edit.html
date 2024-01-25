@@ -20,11 +20,11 @@
                         {% csrf_token %}
                         <div class="mb-4">
                             <label for="product_name" class="form-label">color name</label>
-                            <input type="text" placeholder="Type here" name='name' value={{obj.color_name}} class="form-control" id="product_name" />
+                            <input type="text" placeholder="Type here" required="required" name='name' value={{obj.color_name}} class="form-control" id="product_name" />
                         </div>
                         <div class="mb-4">
                             <label for="product_name" class="form-label">color code</label>
-                            <input type="text" placeholder="Type here" name='code' value={{obj.color_code}} class="form-control" id="product_code" />
+                            <input type="text" placeholder="Type here"  name='code' value={{obj.color_code}} class="form-control" id="product_code" />
                         </div>
 
                        

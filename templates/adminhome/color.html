@@ -7,9 +7,7 @@
             <h2 class="content-title card-title">color</h2>
            
         </div>
-        <div>
-            <input type="text" placeholder="Search Categories" class="form-control bg-white">
-        </div>
+       
     </div>
     <div class="card">
         <div class="card-body">
@@ -19,14 +17,18 @@
                         {% csrf_token %}
                         <div class="mb-4">
                             <label for="product_name" class="form-label">color name</label>
-                            <input type="text" placeholder="Type here" name='name' class="form-control" id="product_name" />
+                            <input type="text" placeholder="Type here" name='name' required="required" class="form-control" id="product_name" />
                         </div>
-                        {% comment %} <div class="mb-4">
-                            <label for="product_name" class="form-label">color code</label>
-                            <input type="text" placeholder="Type here" name='code' class="form-control" id="product_name" />
-                        </div> {% endcomment %}
-                        <label for="product_color" class="form-label">Color code</label>
-                        <input type="color" name="code" class="form-control" id="product_color" />
+                      
+                        <label for="product_color"  class="form-label">Color code</label>
+                        <input type="color" required="required" name="code" class="form-control" id="product_color" />
+                        {% if messages %}
+                        <ul class="messages">
+                          {% for message in messages %}
+                            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                          {% endfor %}
+                        </ul>
+                      {% endif %}
 
 
         

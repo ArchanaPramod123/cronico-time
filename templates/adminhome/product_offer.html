@@ -40,7 +40,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for offer in product_offers %}
+                                {% comment %} {% for offer in product_offers %}
                                 <tr>
                                     <td>{{ offer.title }}</td>
                                     <td>{{ offer.product.product_name }}</td>
@@ -53,7 +53,7 @@
                                     <td>{{ offer.is_active }}</td>
                                     <td><a href="{% url 'delete_offer' offer.id %}">Delete</a></td>
                                 </tr>
-                                {% endfor %}
+                                {% endfor %} {% endcomment %}
                             </tbody>
                         </table>
                     </div>

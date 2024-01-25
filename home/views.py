@@ -3,6 +3,7 @@ from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache, cache_control
 from django.contrib.auth import update_session_auth_hash
 import random
 from payment.forms import AddressForm
@@ -14,7 +15,7 @@ from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 import datetime
 from datetime import datetime, timedelta
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.http import JsonResponse
 from django.urls import reverse
 from django.http import HttpResponse
@@ -22,45 +23,51 @@ from django.utils.crypto import get_random_string
 from django.utils.datastructures import MultiValueDictKeyError
 from django.template.loader import render_to_string
 from django.db.models import Sum
-from adminhome.models import ProductOffer
-
+from adminhome.models import ProductOffer,CategoryOffer
 from payment.models import Address,CartOrder,CartItem,ProductOrder,Payments,Wallet,WalletHistory
-from .models import Product,category,User,ProductImages,ProductAttribute,Color,Wishlist,WishlistItems
+from .models import Product,category,User,ProductImages,ProductAttribute,Color,WishlistItem
 # Create your views here.
 
 #===============================user index==============================================================================================================================================================
-
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def user_index(request):
     products = Product.objects.filter(featured=True).order_by('-id').distinct()
-    product_offers=ProductOffer.objects.filter(is_active=True)
-    for p in products:
-       try:
-           product_offer=ProductOffer.objects.get(product=p)
-           if product_offer.is_active:
-              pass
-           else:
-               p.product_offer = 0
-               p.save()
-           
-       except:
-           p.product_offer = 0
-           p.save()
-    
+    try:
+        discount_offer = ProductOffer.objects.get(active=True)
+    except ProductOffer.DoesNotExist:
+        discount_offer = None
+    if discount_offer:
+        current_date = timezone.now()
+        if current_date > discount_offer.end_date or current_date < discount_offer.start_date:
+            discount_offer.active = False
+            discount_offer.save()
+    try:
+        
+        discounted_offer = CategoryOffer.objects.filter(active=True)
+    except ProductOffer.DoesNotExist:
+        discounted_offer = None
+    if discounted_offer:
+        for dis in discounted_offer:
+            products_with_discount = Product.objects.filter(category=dis.category, is_available=True)
+            current_date = timezone.now()
+            if current_date > dis.end_date or current_date < dis.start_date:
+                dis.active = False
+                dis.save()
     context = {
-        'products': products,   
+        'products': products,  
+        "discount_offer":discount_offer,
+        "discounted_offer":discounted_offer,
     }
-    if product_offers is not None:
-        context['product_offers']=product_offers
     return render(request, 'userhome/index.html',context)
 
-#==============================otp generate function-=====================================================================================================================================================================
+#============================ otp generate function =====================================================================================================================================================================
 
 def generate_otp():
     otp = str(random.randint(100000, 999999))
     timestamp = str(timezone.now())  #convert datetime to string
     return otp, timestamp
 
-#=============================user signup======================================================================================================================================================================
+#============================= user signup ======================================================================================================================================================================
 
 def signup(request):
     if request.method == 'POST':
@@ -86,8 +93,8 @@ def signup(request):
         #generate OTP
         otp, timestamp = generate_otp()
         
-        request.session['signup_otp'] = otp  #save OTP to the session
-        request.session['otp_timestamp'] = timestamp  #save the timestamp to the session
+        request.session['signup_otp'] = otp  
+        request.session['otp_timestamp'] = timestamp 
 
         send_mail(
             'OTP verification',
@@ -108,7 +115,7 @@ def signup(request):
         return redirect(enter_otp)
     return render(request,'userhome/usersignup.html')
 
-#============================enter otp that we recive in the mail================================================================================================================================
+#============================ enter otp that we recive in the mail ================================================================================================================================
 
 def enter_otp(request):
     if request.method == 'POST':
@@ -116,7 +123,6 @@ def enter_otp(request):
         stored_otp=request.session.get('signup_otp')
         timestamp_str = request.session.get('otp_timestamp')
 
-         # Check if OTP is expired
         expiration_time = datetime.fromisoformat(timestamp_str) + timedelta(minutes=1)
         current_time = timezone.now()
 
@@ -170,7 +176,7 @@ def resend_otp(request):
         return redirect('signup')
 
 #========================user signin to the system====================================================================================================================================================
-    
+@never_cache   
 def signin(request):
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -206,10 +212,25 @@ def shop(request, category_id=None):
     products = None
     product_count = None
     brands = Brand.objects.filter(is_active=True)
-
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
-
+    # discount =ProductOffer.objects.filter(is_active=True)
+    try:
+        discount_offer = ProductOffer.objects.get(active=True)
+    except ProductOffer.DoesNotExist:
+        discount_offer = None
+        
+    try:
+        
+        discounted_offer = CategoryOffer.objects.filter(active=True)
+    except ProductOffer.DoesNotExist:
+        discounted_offer = None
+    if discounted_offer:
+        for dis in discounted_offer:
+            products_with_discount = Product.objects.filter(category=dis.category, is_available=True)
+            current_date = timezone.now()
+            if current_date > dis.end_date:
+                dis.active = False
+                dis.save()
+    
 
     if category_id:
         selected_category = get_object_or_404(category, id=category_id)
@@ -227,16 +248,14 @@ def shop(request, category_id=None):
             is_deleted=False,
             brand__is_active=True
         )
-
-        if min_price is not None and max_price is not None:
-            products = products.filter(productattribute__price__range=(min_price,max_price))
-        product_count = products.count()
-
     context = {
         'products': products,
         'product_count': product_count,
         'all_categories': all_categories,
         'selected_category': selected_category,
+        'discount_offer':discount_offer,
+        "discounted_offer":discounted_offer
+        # 'discount':discount,
     }
 
     return render(request, 'userhome/shop.html', context)
@@ -248,14 +267,32 @@ def search(request):
     data = Product.objects.filter(product_name__icontains=q).order_by('-id')
     return render(request,'userhome/search.html',{'data':data})
 
-#===============================click the product it view the product details========================================================================================================================
+#===============================click the product it view the product details==================================================================================================================================================
 
 def product_details(request, product_id,category_id):
     user=request.user
     product = Product.objects.get(id=product_id)
     images = ProductImages.objects.filter(product=product)
     related_product=Product.objects.filter(category=product.category).exclude(id=product_id)[:4]
-    colors = ProductAttribute.objects.filter(product=product).values('color__id','color__color_name','color__color_code','price','image').distinct()
+    # colors = ProductAttribute.objects.filter(product=product).values('color__id','color__color_name','color__color_code','price','old_price','image').distinct()
+    colors = ProductAttribute.objects.filter(product=product).distinct()
+
+    try:   
+        discount_offer = ProductOffer.objects.get(active=True)
+    except ProductOffer.DoesNotExist:
+        discount_offer = None
+                        
+    try:
+        discounted_offer = CategoryOffer.objects.filter(active=True)
+    except ProductOffer.DoesNotExist:
+        discounted_offer = None
+    if discounted_offer:
+        for dis in discounted_offer:
+            products_with_discount = Product.objects.filter(category=dis.category, is_available=True)
+            current_date = timezone.now()
+            if current_date > dis.end_date:
+                dis.active = False
+                dis.save()
 
     if request.method=="POST":
         if user.is_authenticated:
@@ -264,62 +301,109 @@ def product_details(request, product_id,category_id):
             qty=request.POST.get('quantity')
             product_colour=Color.objects.get(color_name=colour)
             products=ProductAttribute.objects.get(product=product,color=product_colour)
-            item, created = CartItem.objects.get_or_create(user=user, product=products,defaults={'is_deleted': False})
-            item.total=products.price*float(qty)
+           
             print("Related Products:", related_product)
-
-            #If the object was created, set the initial quantity
-            if created:
-                item.quantity = qty
-            
-            #already exists, update its quantity
-            else:
-                item.quantity += int(qty)
-                item.save()
-                item.total=products.price*item.quantity
-        
-            item.save()
-            return redirect(cart_list)
         else:
             return redirect('user_login')
 
     
     context={
         'product': product,
-        'related_product ': related_product,
+        'related_product': related_product,
         'colors' :colors,
         'images':images,
+        "discount_offer":discount_offer,
+        "discounted_offer":discounted_offer,
     }
     
 
     return render(request, 'userhome/product_details.html', context)
-#======================================== cart-list page ==================================================================================================================================
+
+# @login_required(login_url='user_login')
+def add_to_cart(request):
+    user = request.user
+    
+    if request.method == 'POST':
+        product_id = request.POST.get('item_id')
+        color_name = request.POST.get('product_color')
+        qty = int(request.POST.get('quantity'))  # Convert to integer
+
+        try:
+            color = Color.objects.get(color_name=color_name)
+            product = ProductAttribute.objects.get(product=product_id, color=color)
+        except (Color.DoesNotExist, ProductAttribute.DoesNotExist):
+            messages.error(request, 'Invalid product or color.')
+            return JsonResponse({'status': 'error', 'message': 'Invalid product or color.'}, status=400)
+        
+        print(f"Selected Product ID: {product_id}")
+        print(f"Selected Color: {color_name}")
+        print(f"Selected Quantity: {qty}")
+        if qty > product.stock:
+            messages.error(request, f"Insufficient stock. Only {product.stock} available.")
+            return JsonResponse({'status': 'error', 'message': 'Insufficient stock.'}, status=400)
+
+        try:
+            cart_item = CartItem.objects.get(product=product, user=user, is_deleted=False)
+            available_stock = product.stock - cart_item.quantity  # Calculate available stock
+            if qty > available_stock:
+                messages.error(request, f"Stock limit reached. Only {available_stock} available.")
+                return JsonResponse({'status': 'error', 'message': f"Stock limit reached. Only {available_stock} available."}, status=400)
+
+            cart_item.quantity += qty  # Update the quantity
+            cart_item.total = product.price * cart_item.quantity
+            cart_item.save()
+        except CartItem.DoesNotExist:
+            item, created = CartItem.objects.get_or_create(user=user, product=product, defaults={'is_deleted': False})
+            item.quantity = qty
+            item.total = product.price * qty
+            item.save()
+
+        cart_count = CartItem.objects.filter(user=request.user, is_deleted=False).count()
+
+        response_data = {
+            'status': 'success',
+            'message': 'Product added to cart successfully',
+            'cart_count': cart_count
+        }
+        return JsonResponse(response_data)
+    else:
+        print('Invalid request or not AJAX')  # Print the error
+        return JsonResponse({'status': 'error', 'message': 'Invalid request or not AJAX'}, status=400)
+
+
+
+#======================================== cart-list page ============================================================================================================================================================================
 @login_required(login_url='user_login')
 def cart_list(request):
     user=request.user 
     items=CartItem.objects.filter(user=user, is_deleted=False)
+    ct=items.count()
   
     total = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
  
-    return render(request,'userhome/cart.html',{'items':items,'total':total})
+    return render(request,'userhome/cart.html',{'items':items,'total':total,'ct':ct})
        
-#========================================= delete cart item ================================================================================================================================================
+#========================================= qunatity updation and delete cart item ================================================================================================================================================
 @login_required(login_url='user_login')
 def qty_update(request):
     user = request.user
     item_id = request.GET.get('item_id')
     new_quantity = int(request.GET.get('new_quantity'))
-    print(item_id)
-    print(new_quantity)
+    # print(item_id)
+    # print(new_quantity)
     cart_items = CartItem.objects.all().filter(is_deleted=False, user=user)
     
     cart_item = get_object_or_404(CartItem, id=item_id)
     now=timezone.now()
 
+    if new_quantity > cart_item.product.stock:
+        return JsonResponse({'error': 'Insufficient stock.', 'success': False}, status=400)
+
     # Update the quantity in the database
     cart_item.quantity = new_quantity
     cart_item.total = cart_item.product.price * new_quantity 
     cart_item.save()
+    # total_price = CartItem.objects.filter(user=user, is_deleted=False).aggregate(total=Sum('total'))['total'] or 0
     total_price = cart_items.aggregate(total=Sum('total'))['total']
     
     response_data = {'new_qty':new_quantity,'new_price':cart_item.total,'total':total_price}
@@ -332,27 +416,38 @@ def delete_cart_item(request):
 
     try:
         cart_item = CartItem.objects.get(id=item_id, user=user)
-        cart_item.is_deleted = True
-        cart_item.save()
+        cart_item.delete()
+        # cart_item.is_deleted = True
+        # cart_item.save()
 
         # Recalculate the total
         cart_items = CartItem.objects.filter(user=user, is_deleted=False)
         total = cart_items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
 
-        return JsonResponse({'success': True, 'total': total})
+        cart_count = cart_items.count()
+         # Check if the cart is empty
+        # is_cart_empty = CartItem.objects.filter(user=user, is_deleted=False).count() == 0
+         # Check if the cart is empty
+        is_cart_empty = cart_items.count() == 0
+
+        return JsonResponse({'success': True, 'total': total, 'is_cart_empty': is_cart_empty, 'cart_count': cart_count})
     except CartItem.DoesNotExist:
         return JsonResponse({'error': 'Item not found in the cart'})
+    except Exception as e:
+        return HttpResponseBadRequest(f"Error: {str(e)}")
 
-#=======================================user account====================================================================================================================================
+#======================================= user account ====================================================================================================================================
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url='user_login')
+
 def user_account(request):
     user_address = Address.objects.filter(users=request.user)
     order_history = CartOrder.objects.filter(user=request.user).order_by('-id')
     order_items = ProductOrder.objects.filter(user=request.user)
-    # Retrieve or create the user's wallet
+
     wallet, created = Wallet.objects.get_or_create(user=request.user, defaults={'balance': 0})
     
-    # Retrieve wallet history
+
     wallethistory = WalletHistory.objects.filter(wallet=wallet)
     context={
         'user_address':user_address,
@@ -389,7 +484,7 @@ def delete_address(request, address_id):
         return redirect('user_account')
     
     return render(request, 'userhome/delete_address.html', {'address': address})
-#====================================cancel order=============================================================================================================================================================
+#==================================== order ithems that user order =============================================================================================================================================================
 @login_required(login_url='user_login')
 def order_items(request, order_number):
     order = get_object_or_404(CartOrder, id=order_number)
@@ -400,11 +495,11 @@ def order_items(request, order_number):
     context = {
         'order': order,
         'product_orders': product_orders,
-        'order_total': sum(item.subtotal for item in product_orders),  # Calculate total
+        'order_total': sum(item.subtotal for item in product_orders),
     }
 
     return render(request, 'userhome/user_order_history.html', context)
-#=========================================password change=====================================================================================================================================================================
+#========================================= password change =====================================================================================================================================================================
 
 @login_required(login_url='user_login')
 def change_password(request):
@@ -459,7 +554,8 @@ def cancell(request,order_number):
             WalletHistory.objects.create(
                         wallet=wallet,
                         type='Credited',
-                        amount=order.order_total
+                        amount=order.order_total,
+                        reason='Item cancelation'
                         )
 
             refunded_message = f'Amount of {order.order_total} refunded successfully to your wallet.'
@@ -469,7 +565,6 @@ def cancell(request,order_number):
                 product_attribute = product_order.variations
                 product_attribute.stock += product_order.quantity
                 product_attribute.save()
-
 
         order.status = 'Cancelled'
         order.save()
@@ -492,18 +587,17 @@ def return_order(request,order_number):
         WalletHistory.objects.create(
                     wallet=wallet,
                     type='Credited',
-                    amount=order.order_total
+                    amount=order.order_total,
+                    reason='Return Order Item'
                     )
 
         refunded_message = f'Amount of {order.order_total} refunded successfully to your wallet.'
         messages.success(request, refunded_message)
 
-        # Restore stock for each ordered product
         for product_order in order.productorder_set.all():
             product_attribute = product_order.variations
             product_attribute.stock += product_order.quantity
             product_attribute.save()
-
 
         order.status = 'Return'
         order.save()
@@ -514,7 +608,6 @@ def return_order(request,order_number):
         pass
 
     except Wallet.DoesNotExist:
-      
         pass
 
     except Exception as e:
@@ -522,78 +615,76 @@ def return_order(request,order_number):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-#======================================== wishlist==================================================================================================================================
+#======================================== wishlist list, add , delete ==================================================================================================================================
 
 def wishlist(request):
     if not request.user.is_authenticated:
-        messages.info(request,'login to access wishlist')
-        return redirect('log:user_login')
+        messages.info(request, 'Login to access wishlist')
+        return redirect('user_login')
     else:
         context = {}
         try:
-            wishlist=Wishlist.objects.get(user=request.user)
-            wishlist_items=WishlistItems.objects.filter(wishlist=wishlist)
-            context={
-                'wishlist_items':wishlist_items
+            wishlist_items = WishlistItem.objects.filter(user=request.user)
+            context = {
+                'wishlist_items': wishlist_items
             }
-        except:
+        except WishlistItem.DoesNotExist:
             pass
-    return render(request,'userhome/wishlist.html',context)
+    return render(request, 'userhome/wishlist.html', context)
 
-
-def add_wishlist(request,product_id):
+def add_wishlist(request, product_id):
     if not request.user.is_authenticated:
-        messages.info(request,'login to access wishlist')
+        messages.info(request, 'Login to access wishlist')
         return redirect('signin')
     else:
         try:
-            wishlist=Wishlist.objects.get(user=request.user)
-           
-        except:
-            wishlist=Wishlist.objects.create(user=request.user)
-            
-
-        product=get_object_or_404(Product,id=product_id)
-
-        if WishlistItems.objects.filter(wishlist=wishlist, product=product).exists():
+            wishlist_item = WishlistItem.objects.get(user=request.user, product_id=product_id)
             messages.info(request, 'Product is already in your wishlist')
-        else:
-            WishlistItems.objects.create(wishlist=wishlist, product=product)
+        except WishlistItem.DoesNotExist:
+            WishlistItem.objects.create(user=request.user, product_id=product_id)
             messages.success(request, 'Product added to your wishlist successfully')
-        
         
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-
-def delete_wishlist(request,wishlist_item_id):
-
-    item=get_object_or_404(WishlistItems, id=wishlist_item_id)
-    item.delete()
+def delete_wishlist(request, wishlist_item_id):
+    wishlist_item = get_object_or_404(WishlistItem, id=wishlist_item_id, user=request.user)
+    wishlist_item.delete()
     
     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
-
+#================================ Filter the product with price ===========================================================================================================================================
 def filter_product(request):    
     try:
-        categories = request.GET.getlist('category[]')
-        print("Selected Categories:", categories)
-        
-
         min_price= request.GET['min_price']
         max_price= request.GET['max_price'] 
 
-        products = Product.objects.filter(status=True).order_by('-id').distinct()
+        products = Product.objects.filter(is_available=True).order_by('-id').distinct()
+        # discount =ProductOffer.objects.filter(is_active=True)
+        try:
+            discount_offer = ProductOffer.objects.get(active=True)
+        except ProductOffer.DoesNotExist:
+            discount_offer = None
+            
+        try:
+            
+            discounted_offer = CategoryOffer.objects.filter(active=True)
+        except ProductOffer.DoesNotExist:
+            discounted_offer = None
+        if discounted_offer:
+            for dis in discounted_offer:
+                products_with_discount = Product.objects.filter(category=dis.category, is_available=True)
+                current_date = timezone.now()
+                if current_date > dis.end_date:
+                    dis.active = False
+                    dis.save()
         
-        products=products.filter(price__gte=min_price)
-        products=products.filter(price__lte=max_price)
-        print("All Products:", products)
-        print("Selected Categories:", categories)
+        products = products.filter(productattribute__price__gte=min_price)
+        products = products.filter(productattribute__price__lte=max_price)
 
-        if len(categories) > 0:
-            products = products.filter(category__id__in=categories).distinct()
-            print("Filtered Product :", products)
-
-        data = render_to_string('userhome/product_list.html', {"products": products})
+        data = render_to_string('userhome/product_list.html', {"products": products,'discount_offer':discount_offer, "discounted_offer":discounted_offer})
+       
         return JsonResponse({"data": data})
     except Exception as e:
         return JsonResponse({"error": str(e)})
+
+#============================================== THE END ======================================================================================================================================================================

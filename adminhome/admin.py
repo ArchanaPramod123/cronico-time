@@ -1,8 +1,7 @@
 from django.contrib import admin
-from .models import ProductOffer
+from .models import ProductOffer,CategoryOffer
 
-class ProductOfferAdmin(admin.ModelAdmin):
-    list_display=['title','product','start_date','end_date','discount','is_active','image']
 
 # Register your models here.
-admin.site.register(ProductOffer,ProductOfferAdmin)
+admin.site.register(ProductOffer)
+admin.site.register(CategoryOffer)

@@ -13,8 +13,8 @@
                                     <h4 class="animated">Trade-in offer</h4>
                                     <h2 class="animated fw-900">Supper value deals</h2>
                                     <h1 class="animated fw-900 text-brand">On all products</h1>
-                                    <p class="animated">Save more with coupons & up to 70% off</p>
-                                    <a class="animated btn btn-brush btn-brush-3" > Shop Now </a>
+                                    
+                                    <a class="animated btn btn-brush btn-brush-3" href="{% url 'shop'%}"> Shop Now </a>
                                 </div>
                             </div>
                             <div class="col-lg-7 col-md-6">
@@ -33,8 +33,8 @@
                                     <h4 class="animated">Hot promotions</h4>
                                     <h2 class="animated fw-900">Fashion Trending</h2>
                                     <h1 class="animated fw-900 text-7">Great Collection</h1>
-                                    <p class="animated">Save more with coupons & up to 20% off</p>
-                                    <a class="animated btn btn-brush btn-brush-2" href="shop-product-right.html"> Discover Now </a>
+                                    
+                                    <a class="animated btn btn-brush btn-brush-2" href="{% url 'shop'%}"> Discover Now </a>
                                 </div>
                             </div>
                             <div class="col-lg-7 col-md-6">
@@ -53,8 +53,8 @@
                                     <h4 class="animated">Upcoming Offer</h4>
                                     <h2 class="animated fw-900">Big Deals From</h2>
                                     <h1 class="animated fw-900 text-8">Manufacturer</h1>
-                                    <p class="animated">Clothing, Shoes, Bags, Wallets...</p>
-                                    <a class="animated btn btn-brush btn-brush-1" href=""> Shop Now </a>
+                                    <p class="animated">Women's watches,unisex watches, men's watches...</p>
+                                    <a class="animated btn btn-brush btn-brush-1" href="{% url 'shop'%}"> Shop Now </a>
                                 </div>
                             </div>
                             <div class="col-lg-7 col-md-6">
@@ -70,23 +70,7 @@
         </section>
         <section class="banners mb-15 mt-15">
             <div class="container">
-                <div class="row">
-                    {% if product_offers %}
-                    {% for offer in product_offers %}
-                    <div class="col-lg-4 col-md-6">
-                        <div class="banner-img wow fadeIn animated">
-                            <img src="{{offer.image.url}}" alt="">
-                            <div class="banner-text">
-                                <span class="text-white">{{offer.title}}</span>
-                                <h4 class="text-white">Save {{offer.discount}}% on <br>{{offer.product.product_name}}</h4>
-                                <a href="{% url 'shop'%}">Shop Now <i class="fi-rs-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% endif %}
-                    
-                    
+                <div class="row">    
                 </div>
             </div>
         </section>
@@ -98,14 +82,14 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="nav-tab-one" data-bs-toggle="tab" data-bs-target="#tab-one" type="button" role="tab" aria-controls="tab-one" aria-selected="true">Featured</button>
                         </li>
-                        <li class="nav-item" role="presentation">
+                        {% comment %} <li class="nav-item" role="presentation">
                             <button class="nav-link" id="nav-tab-two" data-bs-toggle="tab" data-bs-target="#tab-two" type="button" role="tab" aria-controls="tab-two" aria-selected="false">Popular</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="nav-tab-three" data-bs-toggle="tab" data-bs-target="#tab-three" type="button" role="tab" aria-controls="tab-three" aria-selected="false">New added</button>
-                        </li>
+                        </li> {% endcomment %}
                     </ul>
-                    <a href="#" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a>
+                    {% comment %} <a href="#" class="view-more d-none d-md-flex">View More<i class="fi-rs-angle-double-small-right"></i></a> {% endcomment %}
                 </div> 
                 <!--End nav-tabs-->
                 <div class="tab-content wow fadeIn animated" id="myTabContent">
@@ -116,46 +100,81 @@
                                 <div class="product-cart-wrap mb-30">
                                     <div class="product-img-action-wrap">
                                         <div class="product-img product-img-zoom">
-                                            {% comment %} <a href="{% url 'product_details' product_name=product.product_name id=product.id %}"> {% endcomment %}
-                                            
                                             <a href="{% url 'product_details' category_id=product.category.id product_id=product.id  %}">
                                                 <img class="default-img" src="{{ product.productattribute_set.first.image.url }}" alt="product image">
                                                 {% comment %} <img class="hover-img" src="{{ product.product_image1.url }}" alt=""> {% endcomment %}
                                             </a>
+                                        
                                         </div>
                                         <div class="product-action-1">
-                                            {% comment %} <a aria-label="Quick view" class="action-btn hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal"><i class="fi-rs-eye"></i></a> {% endcomment %}
-                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id %}"><i class="fi-rs-heart"></i></a>
-                                            {% comment %} <a aria-label="Compare" class="action-btn hover-up" href="shop-compare.html"><i class="fi-rs-shuffle"></i></a> {% endcomment %}
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id %}"><i class="fi-rs-heart"></i></a> 
+                                        </div> 
+                                        {% if discount_offer is not None and discount_offer.active %}
+                                        <div class="product-badges product-badges-position product-badges-mrg">
+                                            <span class="hot">-{{ discount_offer.discount_percentage|floatformat:0 }}%</span>
                                         </div>
-                                        {% comment %} <div class="product-badges product-badges-position product-badges-mrg">
+                                        {% elif discounted_offer %}
+                                        {% for dis in discounted_offer %}
+                                            {% if dis.active and dis.category == product.category %}
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot">-{{ dis.discount_percentage|floatformat:0 }}%</span>
+                                            </div>
+                                                {% else %}
+                                                <div class="product-badges product-badges-position product-badges-mrg">
+                                                    <span class="hot">Hot</span>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="product-badges product-badges-position product-badges-mrg">
                                             <span class="hot">Hot</span>
-                                        </div>{% endcomment %}
+                                        </div>
+                                    {% endif %}
                                     </div>
                                     <div class="product-content-wrap">
                                         <div class="product-category">
                                             <a href="shop-grid-right.html">{{ product.category }}</a>
                                         </div>
                                         <h2><a href="{% url 'products_by_category' category_id=product.category.id %}">{{ product.product_name }}</a></h2>
-                                        <div class="rating-result" title="90%">
-                                            <span>
+                                        <div >
+                                            {% comment %} <span>
                                                 <span>90%</span>
-                                            </span>
+                                            </span> {% endcomment %}
                                         </div>
-                                        <div class="product-price">
+                                        {% if discount_offer is not None and discount_offer.active %}
+                                                <div class="product-price">
+                                                    <span class="current-product-price-{{product.id}}">₹{{product.productattribute_set.first.price}}</span>
+                                                    <span class="old-price">₹{{product.productattribute_set.first.old_price}}</span>
+                                                </div>
+                                            {% elif discounted_offer %}
+                                                {% for dis in discounted_offer %}
+                                                    {% if dis.active and dis.category == product.category %}
+                                                        <div class="product-price">
+                                                            <span>₹ <span class="current-product-price-{{product.id}}">{{product.productattribute_set.first.price}}</span></span>
+                                                            ₹<span class="old-price">{{product.productattribute_set.first.old_price}}</span>
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="product-price">
+                                                            <span>₹ <span class="current-product-price-{{product.id}}">{{product.productattribute_set.first.price}}</span></span>
+                                                            
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <div>
+                                                    <span style="font-size: large;">
+                                                        ₹<span class="current-product-price-{{product.id}} text-success" style="font-weight: bold;">{{product.productattribute_set.first.price}}</span>
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        {% comment %} <div class="product-price">
                                             <span class="product-price1">₹{{ product.productattribute_set.first.price}}</span>
                                             <span class="old-price">{{product.offer_price}}</span>
-                                        </div>
-                                        <div class="product-action-1 show">
-
-                                            <a aria-label="Add To Cart" data-index="" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
-                                        </div>
+                                        </div> {% endcomment %}
                                     </div>
                                 </div>
                             </div>
                             {% endfor %}
-                            
-                            
                         </div>
                         <!--End product-grid-4-->
                     </div>
@@ -168,7 +187,7 @@
                         <div class="deal wow fadeIn animated mb-md-4 mb-sm-4 mb-lg-0" style="background-image: url('{% static 'assets/imgs/banner/banner1.jpg'%}');">
                              <div class="deal-top">
                                 <h2 class="text-brand"></h2>
-                                <h5>welcom to the timeix</h5>
+                                <h5>welcome to the cronico</h5>
                             </div>
                         </div>
                     </div>
@@ -188,43 +207,56 @@
                         <div class="brand-logo">
                             <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-1.png'%}" alt="">
                         </div>
-                        <div class="brand-logo">
-                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-2.png'%}" alt="">
-                        </div>
-                        <div class="brand-logo">
-                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-3.png'%}" alt="">
-                        </div>
-                        <div class="brand-logo">
-                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-4.png'%}" alt="">
-                        </div>
-                        <div class="brand-logo">
-                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-5.png'%}" alt="">
-                        </div>
-                        <div class="brand-logo">
-                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-6.png'%}" alt="">
-                        </div>
-                        <div class="brand-logo">
-                            <img class="img-grey-hover" src="{% static 'assets/imgs/banner/brand-3.png'%}" alt="">
-                        </div>
+                      
                     </div>
                 </div>
             </div>
         </section>  {% endcomment %}
        
-        <section class="mb-50">
+        <section id="about-section" class="mb-50">
             <div class="container">
                 <div class="row">
                     <div class="col-12">
                         <div class="banner-bg wow fadeIn animated" style="background-image: url('{% static 'assets/imgs/banner/banner-8.jpg'%}')">
                             <div class="banner-content">
                                 <h4 class="text-grey-4 mb-15">ABOUT CRONICO</h4>
-                                <h6class="fw-600">Welcome to cronico, your premier destination for exquisite timepieces! At cronico, we believe that a watch is not just a timekeeping device; it's a reflection of your style, a statement of sophistication, and a companion in every moment of your life.</h6>
+                                <h6 class="fw-600">
+                                    Welcome to Cronico, your premier destination for exquisite timepieces! At Cronico, we are more than just a watch brand; we are curators of timeless elegance and craftsmanship. Our commitment is to offer you not just a timekeeping device, but a piece of art that reflects your unique style, makes a bold statement of sophistication, and becomes a companion in every significant moment of your life.
+        
+                                    <br><br>
+        
+                                    <strong>Our Philosophy:</strong>
+                                    <br>
+                                    At Cronico, we believe in the artistry of watchmaking. Each timepiece is meticulously crafted with precision and passion, embodying the rich heritage of horology. Our philosophy revolves around creating watches that go beyond telling time – they tell stories, mark milestones, and become an integral part of your journey.
+        
+                                    <br><br>
+        
+                                    <strong>Quality and Craftsmanship:</strong>
+                                    <br>
+                                    Our watches are a testament to uncompromising quality and craftsmanship. From the finest materials to intricate details, we ensure that every watch bearing the Cronico name is a masterpiece. It's not just an accessory; it's an investment in enduring style and quality.
+        
+                                    <br><br>
+        
+                                    <strong>Your Style, Your Statement:</strong>
+                                    <br>
+                                    Cronico understands that a watch is a reflection of your personality. That's why we offer a diverse range of designs, from classic to contemporary, ensuring that you find the perfect timepiece that resonates with your individuality.
+        
+                                    <br><br>
+        
+                                    <strong>Join the Cronico Experience:</strong>
+                                    <br>
+                                    Explore our collection and embark on a journey of timeless elegance. Join the Cronico experience, where every tick of the clock is a reminder of life's precious moments.
+        
+                                    <br><br>
+        
+                                    Thank you for choosing Cronico – where time becomes an art, and every moment is celebrated.
+        
+                                </h6>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section> 
-        
+        </section>
     </main>
 {% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'adminhome/base.html' %}
+{% load static %}
+{% comment %} {% block title %} Product Details {% endblock %}
+{% block  body %} {% endcomment %}
+{% block content %}
+
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Create Catgeory Offer</h2>
+                <div>
+                    
+                   
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Category Details</h4>
+                </div>
+
+                <div id="createoffer">
+                  {% if messages %}
+                  {% for message in messages %}
+                  {{message}}
+                  {% endfor %}
+                  {% endif %}
+                </div>
+                <div class="alert alert-danger" id="formcat">
+                  {{form.errors}}
+                </div>
+                <script>
+                  // Add a script to hide the alert after 3 seconds
+                  setTimeout(function() {
+                    var alert = document.getElementById('createoffer');
+                    if (alert) {
+                      alert.style.display = 'none';
+                    }
+                  }, 3000);  // 3000 milliseconds = 3 seconds
+
+                  setTimeout(function() {
+                    var alert = document.getElementById('formcat');
+                    if (alert) {
+                      alert.style.display = 'none';
+                    }
+                  }, 3000);
+                </script>
+
+
+                <!-- {{form.errors}} -->
+                <div class="card-body">
+                  <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="id_code" class="form-label">Discount</label>
+                                {{ form.discount_percentage }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label class="form-label">Category</label>
+                                {{ form.category }}
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label class="form-label">Status</label>
+                                <button type="button" id="toggleStatusButton" onclick="toggleStatus()">
+                                    {% if not form.active %}Deactivate{% else %}Activate{% endif %}
+                                </button>
+                                <input type="hidden" name="active" id="id_active" value="False">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="id_active_date" class="form-label">Active Date</label>
+                                {{ form.start_date }}
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="id_expiry_date" class="form-label">Expiry Date</label>
+                                {{ form.end_date }}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- multi images -->
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <div class="mb-4">
+                                <button type="submit" class="btn btn-primary btn-sm rounded col-lg-12">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+</section>  
+
+<script>
+  function toggleStatus() {
+      const activeInput = document.getElementById('id_active');
+      const toggleStatusButton = document.getElementById('toggleStatusButton');
+      
+      activeInput.value = (activeInput.value === 'True') ? 'False' : 'True';
+      toggleStatusButton.textContent = (activeInput.value === 'True') ? 'Deactivate' : 'Activate';
+  }
+</script>
+
+{% endblock %}      

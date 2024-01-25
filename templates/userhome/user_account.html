@@ -122,6 +122,7 @@
                                                                 <th>Date</th>
                                                                 <th>Type</th>
                                                                 <th>Amount</th>
+                                                                <th>Reason</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -130,6 +131,7 @@
                                                                 <td>{{history.created_at}}</td>
                                                                 <td>{{history.type}}</td>
                                                                 <td>₹{{history.amount}}</td>
+                                                                <td>{{history.reason}}</td>
                                                                
                                                             </tr>
                                                              
@@ -192,9 +194,9 @@
                                                         <label>Email Address <span class="required">*</span></label>
                                                         <input required="" class="form-control square" name="email" value="{{user_data.email}}" type="email">
                                                     </div>
-                                                    <div class="col-md-12">
+                                                    {% comment %} <div class="col-md-12">
                                                         <button type="submit" class="btn btn-fill-out submit" name="submit" value="Submit">Save</button>
-                                                    </div>
+                                                    </div> {% endcomment %}
                                                 </div>
                                             </form>
                                             <a href="{% url 'change_password'%}">Do you want to change the password ?</a>

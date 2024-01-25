@@ -1,0 +1,63 @@
+{% extends 'adminhome/base.html' %}
+{% load static %}
+{% block content %}
+<section class="content-main">
+  <div class="content-header">
+      <div>
+          <h2 class="content-title card-title"> Category Offers</h2>
+          
+      </div>
+      <div class="alert alert-danger" id="myCategory">
+        {% if messages %}
+        {% for message in messages %}
+        {{message}}
+        {% endfor %}
+        {% endif %}
+      </div>
+      <script>
+        // Add a script to hide the alert after 3 seconds
+        setTimeout(function() {
+          var alert = document.getElementById('myCategory');
+          if (alert) {
+            alert.style.display = 'none';
+          }
+        }, 3000);  // 3000 milliseconds = 3 seconds
+      </script>
+      <div>
+          <a href="{% url 'create-category-offer'  %}" class="btn btn-primary btn-sm rounded">Create new</a>
+      </div>
+  </div>
+  <div class="card mb-4">   
+      <div class="card-body">       
+                      <div class="table-responsive">
+                          <table class="table table-hover">
+                              <thead>
+                                  <tr>
+                                      <th>Discount</th>
+                                      <th>Category</th>
+                                      
+                                      <th>Status</th> 
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  {% for off in offers %}
+                                  <tr>
+                                      <td><a href="{% url 'edit-category-offers' off.id %}">
+                                          {{off.discount_percentage}}%
+                                        </a>
+                                      </td>
+                                     
+                                      <td><a href="{% url 'edit-category-offers' off.id %}">{{off.category}}</a> </td>
+                                      
+                                      <td><a href="{% url 'edit-category-offers' off.id %}"> <h6 class="mb-0">{% if off.active %} <span style="color: rgb(143, 143, 39);">Active</span>  {% else %} <span style="color: rgb(120, 40, 40);">Inactive</span> {%endif %}</h6></a></td>
+                                      
+                                  </tr>
+                                  {% endfor %}
+                              </tbody>
+                          </table>
+                      </div>
+           <!-- itemlist  .// -->
+      </div> <!-- card-body end// -->
+  </div> <!-- card end// -->
+</section>
+{% endblock %}

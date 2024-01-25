@@ -1,6 +1,7 @@
 {% extends "userhome/base.html" %}
 {% load static %}
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 <div class="main">
     {% if not wishlist_items %}
@@ -32,28 +33,33 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for list in wishlist_items %}
+                                {% for wishlist_item  in wishlist_items %}
                                 <tr>
-                                    <td class="image product-thumbnail"><a href="{% url 'product_details' list.product.id 0 %}"><img src="{{list.product.productattribute_set.first.image.url}}" alt="#"></a> </td>
+                                    <td class="image product-thumbnail"><a href="{% url 'product_details' wishlist_item.product.id 0 %}"><img src="{{wishlist_item.product.productattribute_set.first.image.url}}" alt="#"></a> </td>
                                     <td class="product-des product-name">
-                                        <h5 class="product-name"><a href="shop-product-right.html">{{list.product.product_name}}</a></h5>
-                                        <p class="font-xs">{{list.product.product_catg.category_name}}<br>
+                                        <h5 class="product-name"><a href="shop-product-right.html">{{wishlist_item.product.product_name}}</a></h5>
+                                        <p class="font-xs">{{wishlist_item.product.category}}<br>
                                         </p>
                                     </td>
                                     <td class="price" data-title="Price">
-                                        {% if list.product.product_offer is not None and list.product.product_offer > 0 %}
-                                        <span>${{list.product.product_offer}}</span>
-                                        {% else %}
-                                        <span>${{list.product.productattribute_set.first.price}}</span>
-                                        {% endif %}
+                                        {% comment %} {% if list.product.product_offer is not None and list.product.product_offer > 0 %}
+                                        <span>₹{{list.product.product_offer}}</span>
+                                        {% else %} {% endcomment %}
+                                        <span>₹{{wishlist_item.product.productattribute_set.first.price}}</span>
+                                        {% comment %} {% endif %} {% endcomment %}
                                     </td>
                 
                                     <td class="text-right" data-title="Cart">
-                                        <a href="{% url 'product_details' product_id=list.product.id category_id=list.product.category.id %}" class="btn btn-sm">view</a>
+                                        <a href="{% url 'product_details' product_id=wishlist_item.product.id category_id=wishlist_item.product.category.id %}" class="btn btn-sm">view</a>
 
                                         {% comment %} <a href="{% url 'product_details' list.id %}" class="btn btn-sm">view</a> {% endcomment %}
                                     </td>
-                                    <td class="action" data-title="Remove"><a href="{% url 'delete_wishlist' list.id %}"><i class="fi-rs-trash"></i></a></td>
+                                    <td class="action" data-title="Remove">
+                                        {% comment %} <a href="{% url 'delete_wishlist' wishlist_item.id %}"> {% endcomment %}
+                                            <a href="#" class="delete-wishlist" data-wishlist-id="{{ wishlist_item.id }}">
+                                            <i class="fi-rs-trash"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -65,6 +71,36 @@
     </section>
     {% endif %}
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteWishlistLinks = document.querySelectorAll('.delete-wishlist');
+        deleteWishlistLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const wishlistItemId = this.getAttribute('data-wishlist-id');
+                confirmDeleteWishlist(wishlistItemId);
+            });
+        });
+    });
+
+    function confirmDeleteWishlist(wishlistItemId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You are about to remove this item from your wishlist!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `/delete_wishlist/${wishlistItemId}`;
+            }
+        });
+    }
+</script>
+
 
 
 {% endblock %}

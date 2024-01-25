@@ -36,18 +36,17 @@
                                             <a href="shop-grid-right.html">{{ product.category }}</a>
                                         </div>
                                         <h2><a href="{% url 'products_by_category' category_id=product.category.id %}">{{ product.product_name }}</a></h2>
-                                        <div class="rating-result" title="90%">
-                                            <span>
+                                        <div >
+                                            {% comment %} <span>
                                                 <span>90%</span>
-                                            </span>
+                                            </span> {% endcomment %}
                                         </div>
                                         <div class="product-price">
-                                            <span>{{product.price}}</span>
-                                            <span class="old-price">{{product.offer_price}}</span>
+                                            <span class="product-price1">₹{{ product.productattribute_set.first.price}}</span>
                                         </div>
-                                        <div class="product-action-1 show">
+                                        {% comment %} <div class="product-action-1 show">
                                             <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html"><i class="fi-rs-shopping-bag-add"></i></a>
-                                        </div>
+                                        </div> {% endcomment %}
                                     </div>
                                 </div>
                             </div>

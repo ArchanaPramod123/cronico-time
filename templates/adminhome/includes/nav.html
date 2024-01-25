@@ -60,11 +60,12 @@
                     </div>
                 </li>
                 <li class="menu-item has-submenu">
-                    <a class="menu-link" href="page-form-product-1.html"> <i class="icon material-icons md-monetization_on"></i>
+                    <a class="menu-link" href="page-form-product-1.html"> <i class="icon material-icons md-stars"></i>
                         <span class="text">Offer</span>
                     </a>
                     <div class="submenu">
-                        <a href="{% url 'add_product_offer' %}">Product Offer</a>
+                        <a href="{% url 'product-offers' %}">Product Offer</a>
+                        <a href="{% url 'category-offers'  %}">Category Offers</a>
                     
                         
                     </div>
@@ -139,7 +140,7 @@
     <main class="main-wrap">
         <header class="main-header navbar">
             <div class="col-search">
-                <form class="searchform">
+                {% comment %} <form class="searchform">
                     <div class="input-group">
                         <input list="search_terms" type="text" class="form-control" placeholder="Search term">
                         <button class="btn btn-light bg" type="button"> <i class="material-icons md-search"></i></button>
@@ -150,7 +151,7 @@
                         <option value="Apple iphone">
                         <option value="Ahmed Hassan">
                     </datalist>
-                </form>
+                </form> {% endcomment %}
             </div>
             <div class="col-nav">
                 <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
@@ -158,7 +159,7 @@
                     <li class="nav-item">
                         <a class="nav-link btn-icon" href="#">
                             <i class="material-icons md-notifications animation-shake"></i>
-                            <span class="badge rounded-pill">3</span>
+                            {% comment %} <span class="badge rounded-pill">3</span> {% endcomment %}
                         </a>
                     </li>
                     <li class="nav-item">

@@ -81,6 +81,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     
 class category(models.Model):
     category_name=models.CharField(max_length=100,unique=True)
+    is_blocked = models.BooleanField(default=False)
 
     def __str__(self) :
         return self.category_name
@@ -150,6 +151,7 @@ class ProductAttribute(models.Model):
     color = models.ForeignKey(Color, on_delete=models.CASCADE)
     price = models.PositiveIntegerField()
     stock = models.IntegerField(default=0)
+    old_price = models.PositiveIntegerField(default=0)
     is_available=models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
     image = models.ImageField(upload_to='photo/product_images',
@@ -163,12 +165,6 @@ class ProductAttribute(models.Model):
     def image_tag(self):
         return mark_safe('<img src="%s" width="50" height="50" />' % self.image.url)
     
-
-
-class Wishlist(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
-
-class WishlistItems(models.Model):
-    wishlist = models.ForeignKey(Wishlist, on_delete=models.CASCADE)
+class WishlistItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-

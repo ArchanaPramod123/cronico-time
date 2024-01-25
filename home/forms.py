@@ -4,6 +4,7 @@ from django import forms
 from .models import User, category, Brand, Color, Product, ProductImages, ProductAttribute
 from payment.models import CartItem
 from django.core.exceptions import ValidationError
+from django.forms import modelformset_factory
 
 class SignUpForm(UserCreationForm):
     class Meta:
@@ -51,6 +52,9 @@ class ProductImagesForm(forms.ModelForm):
         super(ProductImagesForm, self).__init__(*args, **kwargs)
         self.fields['images'].required = False
 
+
+
+
 class ProductAttributeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,7 +65,7 @@ class ProductAttributeForm(forms.ModelForm):
 
     class Meta:
         model = ProductAttribute
-        fields = ['product', 'color', 'price', 'stock', 'image', 'is_deleted', 'is_available']
+        fields = ['product', 'color', 'price','old_price', 'stock', 'image', 'is_deleted', 'is_available']
 
     def clean_image(self):
         image = self.cleaned_data.get('image')

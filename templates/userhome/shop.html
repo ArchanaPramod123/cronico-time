@@ -7,7 +7,7 @@
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
-                <a href="index.html" rel="nofollow">Home</a>
+                <a href="{% url 'user_index'%}" rel="nofollow">Home</a>
                 <span></span> Shop
             </div>
         </div>
@@ -18,20 +18,24 @@
                 <div class="col-lg-12">
                     <div class="shop-product-fillter">
                         <div class="totall-product">
-                            <h5 class="mb-20">Price range</h5> 
-                            <input type="range" value="{{min_max_price.price__min}}"  id="range" class="slider-range" min="{{min_max_price.price__min}}" max="{{min_max_price.price__max}}" name="range" oninput="max_price.value=this.value"> 
-                            <div class="price-filter">
-                                <div class="d-flex justify-content-between">
-                               <div class="caption"> From: <strong id ="slider-range-value1" class="text-brand">${{min_max_price.price__min}}</strong></div>
-                               <div class="caption"> To: <strong id ="slider-range-value1" class="text-brand">${{min_max_price.price__max|floatformat:2}}</strong></div>
-                            </div>
-                                <div id="price-slider"></div>
-                                <input type="number" value="{{min_max_price.price__min}}" class="range"  name="" id="max_price" min="{{min_max_price.price__min}}" max="{{min_max_price.price__max}}" placeholder="Current Price" onkeyup="range.value=this.value">
-                            <button id="apply-filter-btn" class="btn btn-primary mt-5" type="button" >Apply Filter</button>
-                            
-                            </div>
                     
+                        <h5 class="mb-20">Price range</h5> 
+                       <input type="range" value="{{min_max_price.price__min}}"  id="range" class="slider-range" min="{{min_max_price.price__min}}" max="{{min_max_price.price__max}}" name="range" oninput="max_price.value=this.value"> 
+                       <div class="price-filter">
+                           <div class="d-flex justify-content-between">
+                          <div class="caption"> From: <strong id ="slider-range-value1" class="text-brand">₹{{min_max_price.price__min}}</strong></div>
+                          <div class="caption"> To: <strong id ="slider-range-value1" class="text-brand">₹{{min_max_price.price__max|floatformat:2}}</strong></div>
+                       </div>
+                           <div id="price-slider"></div>
+                           <input type="number" value="{{min_max_price.price__min}}" class="range"  name="" id="max_price" min="{{min_max_price.price__min}}" max="{{min_max_price.price__max}}" placeholder="Current Price" onkeyup="range.value=this.value">
+                       <button id="apply-filter-btn" class="btn btn-primary mt-5" type="button" >Apply Filter</button>
+                       
+                    </div>
                         </div>
+
+                 
+                    
+                       
                         <div class="sort-by-product-area">
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
@@ -52,28 +56,10 @@
                                     </ul>
                                 </div>        
                             </div>
-                            <div class="sort-by-cover">
-                                <div class="sort-by-product-wrap">
-                                    <div class="sort-by">
-                                        <span><i class="fi-rs-apps-sort"></i>Sort by:</span>
-                                    </div>
-                                    <div class="sort-by-dropdown-wrap">
-                                        <span> Featured <i class="fi-rs-angle-small-down"></i></span>
-                                    </div>
-                                </div>
-                                <div class="sort-by-dropdown">
-                                    <ul>
-                                        <li><a class="active" href="#">Featured</a></li>
-                                        <li><a href="#">Price: Low to High</a></li>
-                                        <li><a href="#">Price: High to Low</a></li>
-                                        <li><a href="#">Release Date</a></li>
-                                        <li><a href="#">Avg. Rating</a></li>
-                                    </ul>
-                                </div>
-                            </div>
+                            
                         </div>
                     </div>
-                    <div class="row product-grid-3">
+                    <div class="row product-grid-3" id="filtered-product">
                         {% for product in products %}
                         <div class="col-lg-3 col-md-4">
                             <div class="product-cart-wrap mb-30">
@@ -81,6 +67,8 @@
                                     <div class="product-img product-img-zoom " style="height: 300px; overflow: hidden;">
                                        
                                         {% comment %} <a href="{% url 'product_details' category_id=product.category.id product_id=product.id %}"> {% endcomment %}
+                                            
+                                            
                                             <a href="{% url 'product_details' category_id=product.category.id product_id=product.id %}"> 
                                             {% if product.productattribute_set.first.image %}
                                                 <img class="default-img" src="{{ product.productattribute_set.first.image.url }}" alt="" style="width: 100%; height: auto;">
@@ -91,6 +79,7 @@
                                             {% comment %} <img class="default-img" src="{{ product.image.url }}" alt="" style="width: 100%; height: auto;">
                                             {% comment %} <img class="hover-img" src="{{ product.product_image1.url }}" alt=""> {% endcomment %} 
                                         </a>
+                                        
                                     </div>
                                     <div class="product-action-1">
                                         
@@ -100,6 +89,27 @@
                                         </a>
                                         
                                     </div>
+                                    {% if discount_offer is not None and discount_offer.active %}
+                                    <div class="product-badges product-badges-position product-badges-mrg">
+                                        <span class="hot">-{{ discount_offer.discount_percentage|floatformat:0 }}%</span>
+                                    </div>
+                                    {% elif discounted_offer %}
+                                    {% for dis in discounted_offer %}
+                                        {% if dis.active and dis.category == product.category %}
+                                        <div class="product-badges product-badges-position product-badges-mrg">
+                                            <span class="hot">-{{ dis.discount_percentage|floatformat:0 }}%</span>
+                                        </div>
+                                            {% else %}
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot">Hot</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="product-badges product-badges-position product-badges-mrg">
+                                        <span class="hot">Hot</span>
+                                    </div>
+                                {% endif %}
                                    
                                 </div>
                                 <div class="product-content-wrap">
@@ -107,20 +117,44 @@
                                         <a href="shop-grid-right.html">{{ product.category }}</a>
                                     </div>
                                     <h2><a href="{% url 'products_by_category' category_id=product.category.id %}">{{ product.product_name }}</a></h2>
-                                    <div class="rating-result" title="90%">
-                                        <span>
+                                    <div>
+                                        {% comment %} <span>
                                             <span>90%</span>
-                                        </span>
+                                        </span> {% endcomment %}
                                     </div>
-                                    <div class="product-price">
+                                    {% if discount_offer is not None and discount_offer.active %}
+                                                <div class="product-price">
+                                                    <span class="current-product-price-{{product.id}}">₹{{product.productattribute_set.first.price}}</span>
+                                                    <span class="old-price">₹{{product.productattribute_set.first.old_price}}</span>
+                                                </div>
+                                            {% elif discounted_offer %}
+                                                {% for dis in discounted_offer %}
+                                                    {% if dis.active and dis.category == product.category %}
+                                                        <div class="product-price">
+                                                            <span>₹ <span class="current-product-price-{{product.id}}">{{product.productattribute_set.first.price}}</span></span>
+                                                            ₹<span class="old-price">{{product.productattribute_set.first.old_price}}</span>
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="product-price">
+                                                            <span>₹ <span class="current-product-price-{{product.id}}">{{product.productattribute_set.first.price}}</span></span>
+                                                            
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <div>
+                                                    <span style="font-size: large;">
+                                                        ₹<span class="current-product-price-{{product.id}} text-success" style="font-weight: bold;">{{product.productattribute_set.first.price}}</span>
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                    {% comment %} <div class="product-price">
                                         <span class="product-price1">₹{{ product.productattribute_set.first.price}}</span>
-                                        {% comment %} <span class="old-price">$245.8</span> {% endcomment %}
+                                        
                                     </div>
                                     <div class="product-action-1 show">
-                                        <a aria-label="Add To Cart" class="action-btn hover-up" href="shop-cart.html">
-                                            <i class="fi-rs-shopping-bag-add"></i>
-                                        </a>
-                                    </div>
+                                        
+                                    </div> {% endcomment %}
                                 </div>
                             </div>
                         </div>
@@ -131,5 +165,70 @@
         </div>
     </section>
 </main>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    $(document).ready(function (){
+        $("#apply-filter-btn").on("click", function(){
+          console.log("A checkbox have been clicked")  ;
+      
+          let filter_object = {}
+      
+          let min_price = $("#max_price").attr("min")
+          let max_price = $("#max_price").val()
+      
+          filter_object.min_price = min_price;
+          filter_object.max_price = max_price;
+      
+         
+          console.log("Filter Object is: ",filter_object);
+          $.ajax({
+            url: '/filter-product',
+            data: filter_object,
+            dataType: 'json',
+            beforeSend: function(){
+              console.log("Trying to filter product...");
+            },
+            success: function(response){
+              console.log(response);
+              console.log("Data filtred successfully...")
+              $("#filtered-product").html(response.data)
+            }
+          })
+        })
+      
+        $("#max_price").on("blur",function(){
+          let min_price = $(this).attr("min")
+          let max_price = $(this).attr("max")
+          let current_price = $(this).val()
+      
+          console.log("Current Price is:", current_price);
+          console.log("Max Price is:", max_price);
+          console.log("Min Price is:", min_price);
+      
+          if(current_price < parseInt(min_price) || current_price > parseInt(max_price)){
+            console.log("Price error occures")
+      
+            min_Price = Math.round(min_price * 100) / 100 
+            max_Price = Math.round(max_price * 100) / 100 
+      
+          
+            // console.log("Min Price is:", min_Price);
+            // console.log("Max Price is:", max_Price);
+      
+            alert("Price must be between $" + min_price + 'and $' + max_price)
+            $(this).val(min_price)
+            $('#range').val(min_price)
+            
+            $(this).focus()
+      
+            return false
+      
+          }
+        })
+      
+      })  
+     
+</script>
 
 {% endblock %}

@@ -13,7 +13,7 @@ class UserWallet(admin.ModelAdmin):
     list_display = ('user', 'balance')
     search_fields = ('user',)
 class UserWalletHistory(admin.ModelAdmin):
-    list_display=('wallet','type','created_at','amount')
+    list_display=('wallet','type','created_at','amount','reason')
     search_fields=('Walet',)
 # class CartOrderItemsAdmin(admin.ModelAdmin):
 #     list_display=['invoice_no','item','image_tag','qty','price','total']

@@ -1,13 +1,14 @@
 {% extends "userhome/base.html" %}
 {% load static %}
 {% block content %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
             <div class="breadcrumb">
                 <a href="index.html" rel="nofollow">Home</a>
-                <span></span> Fashion
-                <span></span> Abstract Print Patchwork Dress
+                <span></span> {{product.category}}
+                <span></span> {{product.product_name}}
             </div>
         </div>
     </div>
@@ -46,53 +47,106 @@
                                         <div class="pro-details-brand">
                                             <span> Brands: <a href="shop-grid-right.html">{{ product.brand }}</a></span>
                                         </div>
-                                        <div class="product-rate-cover text-end">
-                                            <div class="product-rate d-inline-block">
-                                                <div class="product-rating" style="width:90%">
-                                                </div>
-                                            </div>
-                                            <span class="font-small ml-5 text-muted"> (25 reviews)</span>
-                                        </div>
                                     </div>
                                     <div class="clearfix product-price-cover">
-                                        <div class="product-price primary-color float-left">
-                                            <ins>₹<span id="product_price" class='product-price1'>{{ product.productattribute_set.first.price }}</span></ins>
-                                            {% comment %} <ins><span class="old-price font-md ml-15">$200.00</span></ins>
-                                            <span class="save-price  font-md color3 ml-15">25% Off</span> {% endcomment %}
+                                        {% comment %} <div class="product-price primary-color float-left"> {% endcomment %}
+                                            {% if discount_offer is not None and discount_offer.active %}
+                                                <div class="product-price">
+                                                   <span style="font-size: 30px; font-weight:bold" >₹<span class="current-product-price-{{product.id}} text-success" id="product_price" class='product-price1'>{{product.productattribute_set.first.price}}</span></span> 
+                                                    <br> <br>
+                                                    ₹<span class="old-price font-md ml-15" style="text-decoration: line-through;" id="old_price1" class='old_price1' >{{product.productattribute_set.first.old_price}}</span>
+                                                </div>
+                                                {% elif discounted_offer %}
+                                                {% for dis in discounted_offer %}
+                                                    {% if dis.active and dis.category == product.category %}
+                                                        <div class="product-price">
+                                                            <span style="font-size: 30px; font-weight:bold">₹<span class="current-product-price-{{product.id}} text-success" id="product_price" class='product-price1'>{{product.productattribute_set.first.price}}</span></span>
+                                                            <br> <br>
+                                                            ₹<span class="old-price font-md ml-15" style="text-decoration: line-through;" id="old_price1" class='old_price1'>{{product.productattribute_set.first.old_price}}</span>
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="product-price">
+                                                            <span style="font-size: 30px; font-weight:bold">₹<span class="current-product-price-{{product.id}} text-success" id="product_price" class='product-price1'>{{product.productattribute_set.first.price}}</span></span>
+                                                            
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <div>
+                                                    <span style="font-size: 30px;">
+                                                        ₹<span class="current-product-price-{{product.id}} text-success" style="font-weight: bold;" id="product_price" class='product-price1'>{{product.productattribute_set.first.price}}</span>
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                                <br>
+                                                <br>
+                                            {% if discount_offer is not None and discount_offer.active %}
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot" style="font-weight: bold;">-{{ discount_offer.discount_percentage|floatformat:0 }}% Offer</span>
+                                            </div>
+                                            {% elif discounted_offer %}
+                                            {% for dis in discounted_offer %}
+                                                {% if dis.active and dis.category == product.category %}
+                                                <div class="product-badges product-badges-position product-badges-mrg">
+                                                    <span class="hot" style="font-weight: bold;">-{{ dis.discount_percentage|floatformat:0 }}% Offer</span>
+                                                </div>
+                                                    {% else %}
+                                                    <div class="product-badges product-badges-position product-badges-mrg">
+                                                        <span class="hot" style="font-weight: bold;">Hot</span>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% else %}
+                                            <div class="product-badges product-badges-position product-badges-mrg">
+                                                <span class="hot">Hot</span>
+                                            </div>
+                                        {% comment %} {% endif %} {% endcomment %}
+                                            {% comment %} </div> {% endcomment %}
                                         </div>
+                                         {% endif %} 
+                                        {% comment %} <div class="product-price primary-color float-left">
+                                            <ins>₹<span id="product_price" class='product-price1'>{{ product.productattribute_set.first.price }}</span></ins>
+                                            
+                                        </div> {% endcomment %}
                                     </div>
                                     <div class="bt-1 border-color-1 mt-15 mb-15"></div>
                                     <div class="short-desc mb-30">
                                         <p>{{ product.description }}</p>
                                     </div>
-                                    
-                                    <div class="attr-detail attr-color mb-15">
-                                        
+                                    <div class="attr-detail attr-color mb-15">   
                                         <div id="color-buttons">
-{% comment %}                                            
-                                            {% for color in colors %}
-                                                <button onclick="changePrice(this)" class="btn btn-lg" data-color="{{color.color__color_name}}" data-price="{{color.price}}"  style="background-color: {{ color.color__color_code }}"></button>
-                                                
-                                            {% endfor %} {% endcomment %}
                                             <div class="attr-detail attr-color mb-15">
                                                 <strong class="mr-10">Color</strong>
                                                 <ul class="list-filter color-filter">
                                                     <form method="post">
                                                         {% csrf_token %}
                                                         <label for="colorSelect">Choose a color:</label>
-                                                        <select id="colorselect" name="colorselect">
+                                                        {% comment %} <select id="colorselect" name="colorselect">
                                                             {% for color in colors %}
                                                                 {% if color.color__color_code is not none %}
-                                                                    <option   data-price="{{ color.price }}" value="{{ color.color__color_name }}" style="background-color: {{ color.color__color_code }}">{{ color.color__color_name }}</option>
+                                                                    <option data-price="{{ color.price }}" data-old-price="{{ color.old_price }}"  data-image="{{ color.image.url }}" value="{{ color.color__color_name }}" style="background-color: {{ color.color__color_code }}">{{ color.color__color_name }}</option>
                                                                 {% endif %}
+                                                            {% endfor %}
+                                                        </select> {% endcomment %}
+
+                                                        <select id="colorselect" name="colorselect">
+                                                            {% for color in colors %}
+                                                                <option 
+                                                                    data-price="{{ color.price }}" 
+                                                                    data-old-price="{{ color.old_price }}"  
+                                                                    data-image="{{ color.image.url }}" 
+                                                                    value="{{ color.color.color_name }}" 
+                                                                    style="background-color: {{ color.color.color_code }}">
+                                                                    {{ color.color.color_name }}
+                                                                </option>
                                                             {% endfor %}
                                                         </select>
                                                 </ul>
-                                            </div>
+                                            </div>                                          
 
                                             {% comment %} <input type="text"  id="product-color"> {% endcomment %}
-                                         <div class="product-color primary-color float-left">
-                                                <span type="tex" id="product-color" class='product-color1' >{{ product.productattribute_set.first.color }}</span>
+                                         <div class="primary-color float-left">
+                                                <span type="text" id="product-color" class='product-color1' ></span>
                                             </div> 
                                         </div>
                                     </div>
@@ -106,25 +160,23 @@
                                         <input type="hidden" class="product-id" value="{{product.id}}"/>
                                         <input type="hidden" class="product-name" value="{{product.product_name}}"/>
                                         <div class="product-color primary-color float-left">
-                                            <input type="hidden" id="product-color" class='product-color1' >{{ product.productattribute_set.first.color }}
+                                            <input type="hidden" id="product-color1" class='product-color1' value="{{ product.productattribute_set.first.color }}">
                                         </div>
-
                                         {% comment %} <button class="button button-add-to-cart" id="addToCartBtn" type="button" onclick="addToCart()">Add To Cart</button>
                                         {% endcomment %}
-                                        <button type="submit">Add To Cart</button>
+                                        <button type="submit" class="addtocart" data-item-id="{{ product.id }}">Add To Cart</button>
                                     </form>
                                         </div>
-                                        <div id="error-message" class="text-danger"></div>
-                                    </div>
-                                    {% if messages %}
-                                        <div class="messages">
-                                            <ul class="messages">
-                                                {% for message in messages %}
-                                                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                                                {% endfor %}
-                                            </ul>
+                                        <div id="error-message" class="text-danger">
+                                            {% if messages %}
+                                                <ul class="messages">
+                                                    {% for message in messages %}
+                                                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
                                         </div>
-                                    {% endif %}
+                                    </div>
                                     <ul class="product-meta font-xs color-grey mt-50">
                                         <li class="mb-5">SKU: <a href="#">FWM15VKT</a></li>
                                         <li class="mb-5">Tags: <a href="#" rel="tag">Cloth</a>, <a href="#" rel="tag">Women</a>, <a href="#" rel="tag">Dress</a> </li>
@@ -142,242 +194,148 @@
                                     <p>{{ product.specifications }}</p>
                                     <script>
                                         // Function to change price and color when the select tag changes
-const changePriceFromSelect = (selectElement) => {
-    // Get the selected option
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
+                                        const changePriceFromSelect = (selectElement) => {
+                                            console.log('changePriceFromSelect called');
+                                            // Get the selected option
+                                            const selectedOption = selectElement.options[selectElement.selectedIndex];
 
-    // Get the color and price from the selected option
-    const selectedColor = selectedOption.getAttribute('data-color');
-    const price = selectedOption.getAttribute('data-price');
+                                            // Get the color and price from the selected option
+                                            const selectedColor = selectedOption.value;
+                                            const price = selectedOption.getAttribute('data-price');
+                                            const oldPrice = selectedOption.getAttribute('data-old-price');
 
-    // Update the displayed price
-    document.getElementById('product_price').innerText = price;
+                                            const imageSrc = selectedOption.getAttribute('data-image');
 
-    // Update the displayed color
-    document.getElementById('product-color').innerText = selectedColor;
+                                            console.log('Selected Color:', selectedColor);
+                                            console.log('Price:', price);
+                                            console.log('Old Price:', oldPrice);
+                                            console.log('Image Source:', imageSrc);
 
-    // Change the color of some element (replace 'elementId' with the actual ID)
-    // document.getElementById('elementId').style.backgroundColor = selectedColor;
-};
+                                            // Update the displayed price
+                                            document.getElementById('product_price').innerText = price;
 
-// Add event listener for the change event on the color select
-document.getElementById('colorselect').addEventListener('change', function () {
-    changePriceFromSelect(this);
-});
+                                             // Update the old price
+                                            const oldPriceElement = document.getElementById('old_price1');
+                                            if (oldPriceElement) {
+                                                oldPriceElement.innerText = oldPrice;
+                                                console.log('Old Price Updated:', oldPrice);
+                                            }
 
-// Trigger the changePriceFromSelect function on page load to set initial values
-document.addEventListener('DOMContentLoaded', function () {
-    const selectElement = document.getElementById('colorselect');
-    changePriceFromSelect(selectElement);
-});
+                                            
+
+                                            // Update the displayed color
+                                            document.getElementById('product-color').value = selectedColor;
+                                            $("#product-color1").val(selectedColor);
+
+                                            // Update the main product image
+                                            document.getElementById('mainProductImage').src = imageSrc;
+
+                                             // Debugging: Verify that the image source has been set correctly
+                                            console.log('Image Source After Update:', document.getElementById('mainProductImage').src);
+
+                                            
+                                            console.log('Selected Color:', selectedColor);
+                                            // Change the color of some element (replace 'elementId' with the actual ID)
+                                            // document.getElementById('elementId').style.backgroundColor = selectedColor;
+                                        };
+
+                                        // Add event listener for the change event on the color select
+                                        document.getElementById('colorselect').addEventListener('change', function () {
+                                            changePriceFromSelect(this);
+                                        });
+
+                                        // Trigger the changePriceFromSelect function on page load to set initial values
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            const selectElement = document.getElementById('colorselect');
+                                            changePriceFromSelect(selectElement);
+                                        });
 
                                     </script>
-                                   
-                                {% comment %} <h3 class="section-title style-1 mb-30 mt-30">Reviews (3)</h3>
-                                <!--Comments-->
-                                <div class="comments-area style-2">
-                                    <div class="row">
-                                        <div class="col-lg-8">
-                                            <h4 class="mb-30">Customer questions & answers</h4>
-                                            <div class="comment-list">
-                                                <div class="single-comment justify-content-between d-flex">
-                                                    <div class="user justify-content-between d-flex">
-                                                        <div class="thumb text-center">
-                                                            <img src="assets/imgs/page/avatar-6.jpg" alt="">
-                                                            <h6><a href="#">Jacky Chan</a></h6>
-                                                            <p class="font-xxs">Since 2012</p>
-                                                        </div>
-                                                        <div class="desc">
-                                                            <div class="product-rate d-inline-block">
-                                                                <div class="product-rating" style="width:90%">
-                                                                </div>
-                                                            </div>
-                                                            <p>Thank you very fast shipping from Poland only 3days.</p>
-                                                            <div class="d-flex justify-content-between">
-                                                                <div class="d-flex align-items-center">
-                                                                    <p class="font-xs mr-30">December 4, 2020 at 3:12 pm </p>
-                                                                    <a href="#" class="text-brand btn-reply">Reply <i class="fi-rs-arrow-right"></i> </a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!--single-comment -->
-                                                <div class="single-comment justify-content-between d-flex">
-                                                    <div class="user justify-content-between d-flex">
-                                                        <div class="thumb text-center">
-                                                            <img src="assets/imgs/page/avatar-7.jpg" alt="">
-                                                            <h6><a href="#">Ana Rosie</a></h6>
-                                                            <p class="font-xxs">Since 2008</p>
-                                                        </div>
-                                                        <div class="desc">
-                                                            <div class="product-rate d-inline-block">
-                                                                <div class="product-rating" style="width:90%">
-                                                                </div>
-                                                            </div>
-                                                            <p>Great low price and works well.</p>
-                                                            <div class="d-flex justify-content-between">
-                                                                <div class="d-flex align-items-center">
-                                                                    <p class="font-xs mr-30">December 4, 2020 at 3:12 pm </p>
-                                                                    <a href="#" class="text-brand btn-reply">Reply <i class="fi-rs-arrow-right"></i> </a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!--single-comment -->
-                                                <div class="single-comment justify-content-between d-flex">
-                                                    <div class="user justify-content-between d-flex">
-                                                        <div class="thumb text-center">
-                                                            <img src="assets/imgs/page/avatar-8.jpg" alt="">
-                                                            <h6><a href="#">Steven Keny</a></h6>
-                                                            <p class="font-xxs">Since 2010</p>
-                                                        </div>
-                                                        <div class="desc">
-                                                            <div class="product-rate d-inline-block">
-                                                                <div class="product-rating" style="width:90%">
-                                                                </div>
-                                                            </div>
-                                                            <p>Authentic and Beautiful, Love these way more than ever expected They are Great earphones</p>
-                                                            <div class="d-flex justify-content-between">
-                                                                <div class="d-flex align-items-center">
-                                                                    <p class="font-xs mr-30">December 4, 2020 at 3:12 pm </p>
-                                                                    <a href="#" class="text-brand btn-reply">Reply <i class="fi-rs-arrow-right"></i> </a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <!--single-comment -->
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-4">
-                                            <h4 class="mb-30">Customer reviews</h4>
-                                            <div class="d-flex mb-30">
-                                                <div class="product-rate d-inline-block mr-15">
-                                                    <div class="product-rating" style="width:90%">
-                                                    </div>
-                                                </div>
-                                                <h6>4.8 out of 5</h6>
-                                            </div>
-                                            <div class="progress">
-                                                <span>5 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
-                                            </div>
-                                            <div class="progress">
-                                                <span>4 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-                                            </div>
-                                            <div class="progress">
-                                                <span>3 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
-                                            </div>
-                                            <div class="progress">
-                                                <span>2 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
-                                            </div>
-                                            <div class="progress mb-30">
-                                                <span>1 star</span>
-                                                <div class="progress-bar" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
-                                            </div>
-                                            <a href="#" class="font-xs text-muted">How are ratings calculated?</a>
-                                        </div>
-                                    </div>
-                                </div> {% endcomment %}
-                                <!--comment form-->
-                                {% comment %} <div class="comment-form">
-                                    <h4 class="mb-15">Add a review</h4>
-                                    <div class="product-rate d-inline-block mb-30">
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-8 col-md-12">
-                                            <form class="form-contact comment_form" action="#" id="commentForm">
-                                                <div class="row">
-                                                    <div class="col-12">
-                                                        <div class="form-group">
-                                                            <textarea class="form-control w-100" name="comment" id="comment" cols="30" rows="9" placeholder="Write Comment"></textarea>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <div class="form-group">
-                                                            <input class="form-control" name="name" id="name" type="text" placeholder="Name">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-sm-6">
-                                                        <div class="form-group">
-                                                            <input class="form-control" name="email" id="email" type="email" placeholder="Email">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="form-group">
-                                                            <input class="form-control" name="website" id="website" type="text" placeholder="Website">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group">
-                                                    <button type="submit" class="button button-contactForm">Submit
-                                                        Review</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> {% endcomment %}
-                        {% comment %} <div class="row mt-60">
+                        <div class="row mt-60 ">
                             <div class="col-12">
                                 <h3 class="section-title style-1 mb-30">Related products</h3>
                             </div>
-                            <div class="col-12">
-                                {% for related in related_product%}
+                            <div class="col-12 d-flex">
+                                {% for related in related_product %}
                                 <div class="row related-products">
                                     
-                                    <div class="col-lg-3 col-md-4 col-12 col-sm-6">
+                                    <div class="col-lg-9 col-md-6 col-12 col-sm-6">
                                         <div class="product-cart-wrap small hover-up">
                                             <div class="product-img-action-wrap">
                                                 <div class="product-img product-img-zoom">
-                                                    <a href="shop-product-right.html" tabindex="0">
-                                                        <img class="default-img" src="assets/imgs/shop/product-2-1.jpg" alt="">
-                                                        <img class="hover-img" src="assets/imgs/shop/product-2-2.jpg" alt="">
+                                                    <a href="{% url 'product_details' category_id=related.category.id product_id=related.id %}"> 
+                                                        {% if related.productattribute_set.first.image %}
+                                                            <img class="default-img" src="{{ related.productattribute_set.first.image.url }}" alt="" style="width: 100%; height: auto;">
+                                                        {% else %}
+                                                            <!-- Handle the case where the image is missing or not set -->
+                                                            <p>No Image Available</p>
+                                                        {% endif %}
+                                                        
                                                     </a>
+                                                    
                                                 </div>
                                                 <div class="product-action-1">
-                                                    <a aria-label="Quick view" class="action-btn small hover-up" data-bs-toggle="modal" data-bs-target="#quickViewModal
-"><i class="fi-rs-search"></i></a>
-                                                    <a aria-label="Add To Wishlist" class="action-btn small hover-up" href="shop-wishlist.html" tabindex="0"><i class="fi-rs-heart"></i></a>
-                                                    <a aria-label="Compare" class="action-btn small hover-up" href="shop-compare.html" tabindex="0"><i class="fi-rs-shuffle"></i></a>
+                                                    <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id%}">
+                                                        <i class="fi-rs-heart"></i>
+                                                    </a>
                                                 </div>
+                                                {% if discount_offer is not None and discount_offer.active %}
+                                                <div class="product-badges product-badges-position product-badges-mrg">
+                                                    <span class="hot">-{{ discount_offer.discount_percentage|floatformat:0 }}%</span>
+                                                </div>
+                                                {% elif discounted_offer %}
+                                                {% for dis in discounted_offer %}
+                                                    {% if dis.active and dis.category == related.category %}
+                                                    <div class="product-badges product-badges-position product-badges-mrg">
+                                                        <span class="hot">-{{ dis.discount_percentage|floatformat:0 }}%</span>
+                                                    </div>
+                                                        {% else %}
+                                                        <div class="product-badges product-badges-position product-badges-mrg">
+                                                            <span class="hot">Hot</span>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
                                                 <div class="product-badges product-badges-position product-badges-mrg">
                                                     <span class="hot">Hot</span>
                                                 </div>
+                                            {% endif %}
                                             </div>
                                             <div class="product-content-wrap">
                                                 <h2><a href="shop-product-right.html" tabindex="0">{{related.product_name}}</a></h2>
-                                                <div class="rating-result" title="90%">
-                                                    <span>
+                                                {% if discount_offer is not None and discount_offer.active %}
+                                                <div class="product-price">
+                                                    ₹<span class="current-product-price-{{related.id}}">{{related.productattribute_set.first.price}}</span>
+                                                    ₹<span class="old-price">{{related.productattribute_set.first.old_price}}</span>
+                                                </div>
+                                            {% elif discounted_offer %}
+                                                {% for dis in discounted_offer %}
+                                                    {% if dis.active and dis.category == product.category %}
+                                                        <div class="product-price">
+                                                            <span>₹<span class="current-product-price-{{related.id}}">{{related.productattribute_set.first.price}}</span></span>
+                                                            ₹<span class="old-price">{{related.productattribute_set.first.old_price}}</span>
+                                                        </div>
+                                                        {% else %}
+                                                        <div class="product-price">
+                                                            <span>₹<span class="current-product-price-{{related.id}}">{{related.productattribute_set.first.price}}</span></span>
+                                                            
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <div>
+                                                    <span style="font-size: large;">
+                                                        ₹<span class="current-product-price-{{related.id}} text-success" style="font-weight: bold;">{{related.productattribute_set.first.price}}</span>
                                                     </span>
                                                 </div>
-                                                <div class="product-price">
-                                                    <span>${{related.productattribute_set.first.price}} </span>
-                                                    <span class="old-price">$245.8</span>
-                                                </div>
-                                            </div>
+                                            {% endif %}
+                                            </div> 
                                         </div>
-                                    </div>
-                                    
-                                    
-                                    
+                                    </div>   
                                 </div>
                                 {% endfor %}
                             </div>
-                        </div> {% endcomment %}
-                        {% comment %} <div class="banner-img banner-big wow fadeIn f-none animated mt-50">
-                            <img class="border-radius-10" src="assets/imgs/banner/banner-4.png" alt="">
-                            <div class="banner-text">
-                                <h4 class="mb-15 mt-40">Repair Services</h4>
-                                <h2 class="fw-600 mb-20">We're an Apple <br>Authorised Service Provider</h2>
-                            </div>
-                        </div> {% endcomment %}
+                        </div> 
                     </div>
                 </div>
             </div>
@@ -399,18 +357,6 @@ document.addEventListener('DOMContentLoaded', function () {
         transform: scale(1.5); /* Increase size on hover */
         z-index: 1; /* Adjust z-index to bring the hovered image to the front */
     }
-{% comment %} 
-    .zoom-container {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: none;
-        max-width: 80%; /* Adjust the maximum width as needed */
-        max-height: 80vh; /* Adjust the maximum height as needed */
-        overflow: hidden;
-        z-index: 9999;
-    } {% endcomment %}
 
     .zoomed-image {
         max-width: 100%;
@@ -419,7 +365,6 @@ document.addEventListener('DOMContentLoaded', function () {
         transition: transform 0.3s ease-in-out; /* Add smooth transition */
     }
 
-   
 </style>
 
 <script>
@@ -456,33 +401,45 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('error-message').innerText = 'Please enter a valid quantity.';
         }
     }
-    
-    function addToCart() {
-        // Your existing addToCart logic goes here
-        console.log('Adding to cart...');
-    }
-    
 </script>
+<script>
+        $(document).ready(function() {
+          $(".addtocart").click(function(event) {
+            event.preventDefault();
+        
+            var itemId = $(this).data("item-id");
+            var quantity = $("#productQty").val(); // Get the quantity value
+            var productColor = $("#product-color1").val()
 
-{% comment %} <div id="zoomContainer" class="zoom-container">
-    <img id="zoomedImage" class="zoomed-image" src="" alt="Zoomed Image">
-</div> {% endcomment %}
+            $.ajax({
+              type: 'POST', // or 'GET' depending on your server-side implementation
+              url: '/add_to_cart/', // Replace with the actual server endpoint
+              data: {
+                item_id: itemId,
+                quantity: quantity, // Pass the quantity value
+                product_color: productColor, 
+                csrfmiddlewaretoken: "{{ csrf_token }}"
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status === 'success') {
+                    // Update cart count in the navigation bar
+                    var cartCountElement = $(".cart-count");
+                    cartCountElement.text(response.cart_count);
+                    cartCountElement.attr("data-cart-count", response.cart_count);
 
+                    // Clear previous messages
+                    $(".messages ul").empty();
+                } else {
+                    $("#error-message").text(response.message);
+                }
 
-{% comment %} <script>
-    function changeMainImage(thumbnail) {
-        var mainImage = document.querySelector('.product-image-slider img');
-        var newImageURL = thumbnail.dataset.image;
-        mainImage.src = newImageURL;
-    }
-
-    // Attach click event listeners to all thumbnail images
-    var thumbnails = document.querySelectorAll('.thumbnail-image');
-    thumbnails.forEach(function(thumbnail) {
-        thumbnail.addEventListener('click', function() {
-            changeMainImage(thumbnail);
+            },
+            error: function(error) {
+                console.error('Error during AJAX request:', error);
+            }
+            });
+          });
         });
-    });
-</script> {% endcomment %}
-
+      </script>
 {% endblock %}

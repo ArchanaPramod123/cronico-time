@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin_category/',views.admin_category,name='admin_category'),
     path('admin_category_insert/',views.admin_category_insert,name='admin_category_insert'),
     path('admin_category_edit/<int:id>',views.admin_category_edit,name='admin_category_edit'),
+    # path('block_category/<int:category_id>/', views.block_category, name='block_category'),
     path('admin_brand/',views.admin_brand,name='admin_brand'), 
     path('admin_brand_insert/',views.admin_brand_insert,name='admin_brand_insert'),
     path('admin_brand_edit/<int:id>',views.admin_brand_edit,name='admin_brand_edit'),
@@ -26,9 +27,21 @@ urlpatterns = [
     path('admin_varient_delete/<int:id>',views.admin_varient_delete,name='admin_varient_delete'), 
     path('order/',views.order,name='order'),
     path('orderitems/<int:order_number>',views.orderitems,name='orderitems'),
+    path('cancell_order/<int:order_number>',views.cancell_order,name='cancell_order'),
     path('customers/',views.customers,name='customers'),
     path('block_user/<int:user_id>/', views.block_user, name='block_user'),
     path('sales_report',views.sales_report,name='sales_report'),
-    path('add_product_offer',views.add_product_offer,name='add_product_offer'),
-    path('delete_offer/<int:offer_id>/',views.delete_offer,name='delete_offer')
+    # path('product_offers',views.product_offers,name='product_offers'),
+    # path('delete_offer/<int:offer_id>/',views.delete_offer,name='delete_offer')
+    path('product-offers/',views.product_offers, name='product-offers'),
+    path('edit-product-offers/<int:id>',views.edit_product_offers, name='edit-product-offers'),
+    path('create-product-offer/',views.create_product_offer, name='create-product-offer'),
+    path('delete-product-offer/<int:id>/',views.delete_product_offer, name='delete-product-offer'),
+    path('category-offers/',views.category_offers, name='category-offers'),
+    path('edit-category-offers/<int:id>',views.edit_category_offers, name='edit-category-offers'), 
+    path('create-category-offer/',views.create_category_offer, name='create-category-offer'),
+    path('delete-category-offer/<int:id>/',views.delete_category_offer, name='delete-category-offer'),
+    path('sales_report',views.sales_report,name='sales_report')
+    
+
 ]

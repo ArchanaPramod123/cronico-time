@@ -289,7 +289,6 @@ def wallet_place_order(request):
         total = items.aggregate(total_sum=Sum('total'))['total_sum']
         address = Address.objects.filter(users=request.user).first()
 
-        # Wallet payment condition
         try:
             print("inside the wallet tryyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
             wallet = Wallet.objects.get(user=request.user)
@@ -315,7 +314,7 @@ def wallet_place_order(request):
                 payment_instance = Payments.objects.create(
                     user=request.user,
                     payment_id=f"PAYMENT-{timezone.now().strftime('%Y%m%d%H%M%S')}",
-                    payment_method='Wallet',  # You can update this based on your logic
+                    payment_method='Wallet', 
                     amount_paid=total,
                     status='paid',
                 )
@@ -341,15 +340,14 @@ def wallet_place_order(request):
                     orderedproduct.save()
                     item.delete()
 
-                # Deduct amount from wallet balance
                 wallet.balance -= total
                 wallet.save()
 
-                # Log wallet transaction
                 WalletHistory.objects.create(
                     wallet=wallet,
                     type='Debit',
-                    amount=total
+                    amount=total,
+                    reason='Order Placement'
                 )
 
                 return redirect('order_success')
@@ -359,19 +357,16 @@ def wallet_place_order(request):
                 messages.error(request, 'Wallet balance is less than the total amount')
                 return render(request, 'paymenthome/payment.html', {
                     'error_message': 'Wallet balance is less than the total amount',
-                    # Add other context variables as needed
                 })
-
-
+            
         except Wallet.DoesNotExist:
-            print("except in the try            ")
+            print("except in the try")
             messages.error(request, 'Wallet not found for the user')
             return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
     except Exception as e:
         print("an error occureeeeeeeeeeeeeeeeeeeeeeeeeeeee")
         print(f"An error occurred: {e}")
-        # Handle the error as needed
         return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
 
 def order_success(request):
@@ -389,50 +384,27 @@ def order_success(request):
     return render(request,'paymenthome/orderdetail.html',context)
 
 
-
+#=================== invoice after the user order place ====================================================================================================================================================
 def invoice(request,order_id,total=0):
     try:
         order=CartOrder.objects.get(id=order_id)
-        # coupen_id=order.coupen
         orders=ProductOrder.objects.filter(order=order)
     except:
         pass
-    # if coupen_id is not None:
-    #     coupen=Coupon.objects.get(coupon_id=coupen_id)
-    #     descount=coupen.discount_rate
+
     grand_total = order.order_total
     for item in orders:
         item.subtotal=item.quantity * item.product_price
         total += item.subtotal
-    # tax=order.tax
-    # if coupen_id is not None:
-    #     grand_total =Decimal(tax + total) - descount
-    #     # descount_total=grand_total - descount
-    # else:
-    #     grand_total = tax + total
-
     context={
         'order':order,
         'orders':orders,
         'grand_total':grand_total,
-        # 'tax':tax,
     }
-    # try:
-    #    if descount is not None:
-    #       context['descount'] = descount
-    # except:
-    #     pass
+
     return render(request,'paymenthome/invoice.html',context) 
 
-
-# def wallet(request):
-#     try:
-#         wallet = Wallet.objects.get(user=request.user)
-#         if wallet:
-#             print(wallet.balance)
-#     except:
-#         wallet = Wallet.objects.create(user=request.user, balance=0)
-#     return render(request,'paymenthome/wallet.html',{'wallet':wallet})
+#=========================================== THE END ============================================================================================================================================================
 
  
 
