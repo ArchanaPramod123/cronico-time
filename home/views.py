@@ -7,6 +7,7 @@ from django.views.decorators.cache import never_cache, cache_control
 from django.contrib.auth import update_session_auth_hash
 import random
 from payment.forms import AddressForm
+from django.db.models import F
 from .context_processors import *
 from django.contrib.auth import logout,login
 from django.core.mail import send_mail
@@ -23,7 +24,7 @@ from django.utils.crypto import get_random_string
 from django.utils.datastructures import MultiValueDictKeyError
 from django.template.loader import render_to_string
 from django.db.models import Sum
-from adminhome.models import ProductOffer,CategoryOffer
+from adminhome.models import ProductOffer,CategoryOffer,Banner
 from payment.models import Address,CartOrder,CartItem,ProductOrder,Payments,Wallet,WalletHistory
 from .models import Product,category,User,ProductImages,ProductAttribute,Color,WishlistItem
 # Create your views here.
@@ -31,7 +32,8 @@ from .models import Product,category,User,ProductImages,ProductAttribute,Color,W
 #===============================user index==============================================================================================================================================================
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def user_index(request):
-    products = Product.objects.filter(featured=True).order_by('-id').distinct()
+    products = Product.objects.filter(featured=True,category__is_deleted=False,category__is_blocked=False).order_by('-id').distinct()
+    banners =Banner.objects.filter(is_active=True)
     try:
         discount_offer = ProductOffer.objects.get(active=True)
     except ProductOffer.DoesNotExist:
@@ -57,6 +59,7 @@ def user_index(request):
         'products': products,  
         "discount_offer":discount_offer,
         "discounted_offer":discounted_offer,
+        'banners':banners,
     }
     return render(request, 'userhome/index.html',context)
 
@@ -206,9 +209,10 @@ def user_logout(request):
 
 #=============================display the all prouct in shop================================================================================================================================
 
-def shop(request, category_id=None):
-    all_categories = category.objects.all()
+def shop(request, category_id=None,brand_id=None):
+    all_categories = category.objects.filter(is_deleted=False,is_blocked=False)
     selected_category = None
+    selected_brand = None
     products = None
     product_count = None
     brands = Brand.objects.filter(is_active=True)
@@ -230,9 +234,32 @@ def shop(request, category_id=None):
             if current_date > dis.end_date:
                 dis.active = False
                 dis.save()
-    
 
-    if category_id:
+    # if 'category_id' in request.GET:
+    #     category_id = request.GET['category_id']
+    #     selected_category = get_object_or_404(category, id=category_id)
+    #     products = Product.objects.filter(
+    #         category=selected_category,
+    #         is_available=True,
+    #         is_deleted=False,
+    #         brand__is_active=True
+    #     )
+    #     product_count = products.count()
+        
+
+    # if 'brand_id' in request.GET:
+    #     brand_id = request.GET['brand_id']
+    #     selected_brand = get_object_or_404(Brand, id=brand_id)
+    #     products = Product.objects.filter(
+    #         brand=selected_brand,
+    #         is_available=True,
+    #         is_deleted=False,
+    #         brand__is_active=True
+    #     )
+    #     product_count = products.count()
+                
+    if 'category_id' in request.GET:
+        category_id = request.GET['category_id']
         selected_category = get_object_or_404(category, id=category_id)
         products = Product.objects.filter(
             category=selected_category,
@@ -242,23 +269,36 @@ def shop(request, category_id=None):
         )
         product_count = products.count()
 
-    else:
+    elif 'brand_id' in request.GET:
+        brand_id = request.GET['brand_id']
+        selected_brand = get_object_or_404(Brand, id=brand_id)
         products = Product.objects.filter(
+            brand=selected_brand,
             is_available=True,
             is_deleted=False,
             brand__is_active=True
         )
+        product_count = products.count()
+
+    else:
+        # If neither category_id nor brand_id is present, retrieve all products
+        products = Product.objects.filter(is_available=True, is_deleted=False, brand__is_active=True ,category__is_deleted=False,category__is_blocked=False)
+        product_count = products.count()
     context = {
         'products': products,
         'product_count': product_count,
         'all_categories': all_categories,
         'selected_category': selected_category,
         'discount_offer':discount_offer,
-        "discounted_offer":discounted_offer
+        "discounted_offer":discounted_offer,
+        'selected_brand': selected_brand,
+        'brands': brands,
+        # 'category_id': category_id if 'category_id' in request.GET else None,
         # 'discount':discount,
     }
 
     return render(request, 'userhome/shop.html', context)
+
 
 #================================search======================================================================================================================================================================================
 
@@ -442,7 +482,7 @@ def delete_cart_item(request):
 
 def user_account(request):
     user_address = Address.objects.filter(users=request.user)
-    order_history = CartOrder.objects.filter(user=request.user).order_by('-id')
+    order_history = CartOrder.objects.filter(user=request.user).order_by('-id').annotate(product_name=F('productorder__product__product_name'),product_image=F('productorder__product__productattribute__image'))
     order_items = ProductOrder.objects.filter(user=request.user)
 
     wallet, created = Wallet.objects.get_or_create(user=request.user, defaults={'balance': 0})
@@ -459,6 +499,20 @@ def user_account(request):
     }
     return render(request, 'userhome/user_account.html',context)
 #========================== edit,delete address ==========================================================================================================================================================================
+def add_address(request):
+    if request.method=='POST':
+        form = AddressForm(request.POST,request.FILES)
+        if form.is_valid():
+            address=form.save(commit=False)
+            address.users = request.user
+            address.save()
+            return redirect('user_account')
+    else:
+        form=AddressForm()
+    context={
+        'form':form
+    }
+    return render(request, 'userhome/add_address.html',context)
 @login_required(login_url='user_login')
 def edit_address(request, address_id):
     address = get_object_or_404(Address, id=address_id, users=request.user)

@@ -1,0 +1,91 @@
+{% extends 'adminhome/base.html' %}
+{% load static %}
+{% block  content %}
+
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Edit Coupon</h2>
+                <div>
+                    
+                   
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Coupon Details</h4>
+                </div>
+
+                <!-- <div class="alert alert-danger">
+                  {% if messages %}
+                  {% for message in messages %}
+                  {{message}}
+                  {% endfor %}
+                  {% endif %}
+                </div> -->
+
+
+                <!-- {{form.errors}} -->
+                <div class="card-body">
+                  <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="id_code" class="form-label">Coupon name</label>
+                                <input type="text" name="code" id="id_code" class="form-control" required value="{{ coupon_code.code }}">
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="id_discount" class="form-label">Discount</label>
+                                <input type="number" name="discount" id="id_discount" class="form-control" required value="{{ coupon_code.discount }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-6">
+                        <div class="mb-4">
+                            <label for="id_active" class="form-label">Status</label>
+                            <input type="checkbox" name="active"  id="id_active" {% if coupon.active %}checked{% endif %}>
+                        </div>
+                    </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="id_active_date" class="form-label">Active Date</label>
+                                <input type="date" name="active_date" value="{{ coupon_code.active_date|date:'Y-m-d' }}"><br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="id_expiry_date" class="form-label">Expiry Date</label>
+                        <input type="date" name="expiry_date" value="{{ coupon_code.expiry_date|date:'Y-m-d' }}"><br>
+
+                    </div>
+                
+                    <!-- multi images -->
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <button type="submit" class="btn btn-primary btn-sm rounded col-lg-12">Update</button>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </form>
+                <div class="mb-4">
+                  <a href="{% url 'delete_coupon' coupon_code.pk  %}"><button  class="btn btn-danger btn-sm rounded col-lg-12">Delete</button></a>
+              </div>
+                
+                
+                
+                    
+    </div>
+    
+       
+</section>  
+
+{% endblock %}      

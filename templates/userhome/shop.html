@@ -40,21 +40,52 @@
                             <div class="sort-by-cover mr-10">
                                 <div class="sort-by-product-wrap">
                                     <div class="sort-by">
-                                        <span><i class="fi-rs-apps"></i>{{selected_category}}</span>
+                                        <span><i class="fi-rs-apps"></i>Category :</span>
                                     </div>
+                                    <div class="sort-by-dropdown-wrap">
+                                        <span>{{selected_category}}<i class="fi-rs-angle-small-down"></i></span>
+                                    </div>
+                                    
                                 </div>
                                 <div class="sort-by-dropdown">
                                     <ul>
                                         <li><a href="{% url 'shop' %}">All</a></li>
-                                        {% for category_item in all_categories %}
+                                        {% comment %} {% for category_item in all_categories %}
                                             <li {% if category_item == selected_category %}class="active"{% endif %}>
-                                                {% comment %} <a href="{% url 'products_by_category' category_id=product.category.id product_id=product.id%}">{{ category_item.category_name }}</a> {% endcomment %}
+                                            
                                                 <a href="{% url 'products_by_category' category_id=category_item.id %}">{{ category_item.category_name }}</a>
 
+                                            </li>
+                                        {% endfor %} {% endcomment %}
+                                        {% for category_item in all_categories %}
+                                            <li {% if category_item.id == category_id %}class="active"{% endif %}>
+                                                <a href="{% url 'shop' %}?category_id={{ category_item.id }}">{{ category_item.category_name }}</a>
                                             </li>
                                         {% endfor %}
                                     </ul>
                                 </div>        
+                            </div>
+
+                            <div class="sort-by-cover mr-10">
+                                <div class="sort-by-product-wrap">
+                                    <div class="sort-by">
+                                        <span><i class="fi-rs-apps"></i>Brand :</span>
+                                    </div>
+                                    <div class="sort-by-dropdown-wrap">
+                                        <span>{{ selected_brand }}<i class="fi-rs-angle-small-down"></i></span>
+                                    </div>
+                                    
+                                </div>
+                                <div class="sort-by-dropdown">
+                                    <ul>
+                                        <li><a href="{% url 'shop' %}">All Brands</a></li>
+                                        {% for brand_item in brands %}
+                                            <li {% if brand_item.id == selected_brand.id %}class="active"{% endif %}>
+                                                <a href="{% url 'shop' %}?brand_id={{ brand_item.id }}">{{ brand_item.brand_name }}</a>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>
                             
                         </div>

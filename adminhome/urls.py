@@ -8,6 +8,8 @@ urlpatterns = [
     path('admin_category/',views.admin_category,name='admin_category'),
     path('admin_category_insert/',views.admin_category_insert,name='admin_category_insert'),
     path('admin_category_edit/<int:id>',views.admin_category_edit,name='admin_category_edit'),
+    path('admin_delete_category/<int:id>/', views.admin_delete_category, name='admin_delete_category'),
+    path('block_unblock_category/<int:id>/', views.block_unblock_category, name='block_unblock_category'),
     # path('block_category/<int:category_id>/', views.block_category, name='block_category'),
     path('admin_brand/',views.admin_brand,name='admin_brand'), 
     path('admin_brand_insert/',views.admin_brand_insert,name='admin_brand_insert'),
@@ -41,7 +43,15 @@ urlpatterns = [
     path('edit-category-offers/<int:id>',views.edit_category_offers, name='edit-category-offers'), 
     path('create-category-offer/',views.create_category_offer, name='create-category-offer'),
     path('delete-category-offer/<int:id>/',views.delete_category_offer, name='delete-category-offer'),
-    path('sales_report',views.sales_report,name='sales_report')
+    path('sales_report',views.sales_report,name='sales_report'),
+    path('admin_banner/',views.admin_banner,name='admin_banner'),
+    path('create_banner/',views.create_banner, name='create_banner'),
+    path('update_banner/<int:id>',views.update_banner,name='update_banner'),
+    path('delete_banner/<int:id>',views.delete_banner,name='delete_banner'),
+    path('admin_coupon/',views.admin_coupon,name='admin_coupon'),
+    path('create_coupon/',views.create_coupon, name='create_coupon'),
+    path('edit_coupon/<int:id>',views.edit_coupon,name='edit_coupon'),
+    path('delete_coupon/<int:id>',views.delete_coupon,name='delete_coupon'),
     
 
 ]

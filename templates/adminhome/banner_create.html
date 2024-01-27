@@ -1,0 +1,104 @@
+{% extends 'adminhome/base.html' %}
+{% load static %}
+{% block content %}
+
+<section class="content-main">
+    <div class="row">
+        <div class="col-9">
+            <div class="content-header">
+                <h2 class="content-title">Create Banner</h2>
+                <div>
+                    
+                   
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Banner</h4>
+                </div>
+
+                <div class="">
+                  {% if messages %}
+                  {% for message in messages %}
+                  {{message}}
+                  {% endfor %}
+                  {% endif %}
+                </div>
+
+
+                <!-- {{form.errors}} -->
+                <div class="card-body">
+                  <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="title" class="form-label">Title</label>
+                                {{ form.title }}
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="image" class="form-label">Image</label>
+                                {{ form.image }}
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="description1" class="form-label">Description1</label>
+                                {{ form.description1 }}
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="description2" class="form-label">Description2</label>
+                                {{ form.description2 }}
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="description3" class="form-label">Description3</label>
+                                {{ form.description3 }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-lg-6">
+                        <div class="mb-4">
+                            <label for="is_active" class="form-label">Status</label>
+                            <input type="checkbox" name="is_active" id="is_active" {% if banner.is_active %}checked{% endif %}>
+                        </div>
+                    </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <label for="start_date" class="form-label">Active Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="end_date" class="form-label">Expiry Date</label>
+                        <input type="date" name="end_date" id="id_expiry_date" class="end_date" required>
+                    </div>
+                
+                    <!-- multi images -->
+                    <div class="row">
+                        <div class="col-lg-2">
+                            <div class="mb-4">
+                                <button type="submit" class="btn btn-primary btn-sm rounded col-lg-12">Create</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                
+                
+                
+                    
+    </div>
+    
+       
+</section>  
+
+{% endblock %}      

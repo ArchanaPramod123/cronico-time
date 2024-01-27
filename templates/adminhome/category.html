@@ -74,7 +74,15 @@
                                         <td>{{ obj.id }}</td>
                                         <td><b>{{ obj.category_name }}</b></td>
                                         <td class="text-end">
-                                            <a href="{% url 'admin_category_edit' obj.id%}" class="btn btn-sm btn-warning rounded font-sm mt-15">Edit</a>
+                                            <a href="{% url 'admin_category_edit' obj.id %}" class="btn btn-sm btn-warning rounded font-sm mt-15">Edit</a>
+                                            <a href="{% url 'block_unblock_category' obj.id %}">
+                                                {% if obj.is_blocked %}
+                                                    <button class="btn btn-sm btn-success rounded font-sm mt-15">Unblock</button>
+                                                {% else %}
+                                                    <button class="btn btn-sm btn-danger rounded font-sm mt-15">Block</button>
+                                                {% endif %}
+                                            </a>
+                                            <a href="{% url 'admin_delete_category' obj.id %}" class="btn btn-sm btn-danger rounded font-sm mt-15">Delete</a>
                                         </td>
                                     </tr>
                                 {% endfor %}

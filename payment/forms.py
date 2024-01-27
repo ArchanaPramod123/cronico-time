@@ -9,7 +9,7 @@ class AddressForm(forms.ModelForm):
 
     class Meta:
         model =Address
-        fields = ['users','name','address','phone','district','pincode']
+        fields = ['name','address','phone','district','pincode']
 class PaymentMethodForm(forms.Form):
     payment_method = forms.CharField(max_length=100)
 # class CartOrderForm(forms.ModelForm):

@@ -1,0 +1,72 @@
+{% extends 'adminhome/base.html' %}
+{% load static %}
+{% block content %}
+
+<section class="content-main">
+    <div class="content-header">
+        <div>
+            <h2 class="content-title card-title">Banner</h2>
+            
+        </div>
+        <div class="alert alert-danger" id="myAlert">
+          {% if messages %}
+          {% for message in messages %}
+          {{message}}
+          {% endfor %}
+          {% endif %}
+        </div>
+        <script>
+          // Add a script to hide the alert after 3 seconds
+          setTimeout(function() {
+            var alert = document.getElementById('myAlert');
+            if (alert) {
+              alert.style.display = 'none';
+            }
+          }, 3000);  // 3000 milliseconds = 3 seconds
+        </script>
+        <div>
+            <a href="{% url 'create_banner' %}" class="btn btn-primary btn-sm rounded">Create new</a>
+        </div>
+    </div>
+    <div class="card mb-4">
+       
+        <div class="card-body">
+            
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Image</th>
+                                        <th>Active</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><p>Click to view details</p></tr>
+                                    
+                                    {% for b in banners %}
+                                    <tr>
+                                        <td><a href="{% url 'update_banner' b.id %}">
+                                            {{b.title}}
+                                          </a>
+                                        </td>
+                                       
+                                        <td><img src="{{ b.image.url }}" alt="{{ b.title }}" style="max-width: 100px; height: auto;"></td>
+                                        
+                                        <td><a href="#"> <h6 class="mb-0">{% if b.is_active %} <span style="color: rgb(143, 143, 39);">Active</span>  {% else %} <span style="color: rgb(120, 40, 40);">Inactive</span> {%endif %}</h6></a></td>
+                                        
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+        </div> <!-- card-body end// -->
+    </div> <!-- card end// -->
+    
+</section> 
+<br/><br/>
+
+
+
+
+{% endblock %}

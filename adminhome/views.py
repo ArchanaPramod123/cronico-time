@@ -18,8 +18,8 @@ from django.db.models import Count
 from django.db.models.functions import TruncDate,TruncMonth, TruncYear
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
-from .models import ProductOffer,CategoryOffer
-from .forms import ProductOfferForm,CategoryOfferForm
+from .models import ProductOffer,CategoryOffer,Banner,Coupon
+from .forms import ProductOfferForm,CategoryOfferForm,BannerForm,CouponForm
 from django.forms.models import inlineformset_factory
 from django.db.models import F
 # Create your views here.
@@ -143,7 +143,7 @@ def admin_index(request):
 
 @login_required(login_url='admin_login')
 def admin_category(request):
-    data=category.objects.all()
+    data=category.objects.filter(is_deleted=False)
     context={
         'data':data
     }
@@ -178,6 +178,20 @@ def admin_category_edit(request,id):
         "obj":obj
     }
     return render(request,'adminhome/category_edit.html', context)
+
+@login_required(login_url='admin_login')
+def admin_delete_category(request, id):
+    category_to_delete = get_object_or_404(category, id=id)
+    category_to_delete.is_deleted = True
+    category_to_delete.save()
+    return redirect('admin_category')
+
+@login_required(login_url='admin_login')
+def block_unblock_category(request, id):
+    category_to_block = get_object_or_404(category, id=id)
+    category_to_block.is_blocked = not category_to_block.is_blocked
+    category_to_block.save()
+    return redirect('admin_category')
 
 
 
@@ -318,47 +332,6 @@ def admin_product_add(request):
         'form' : form,
     }
     return render(request,'adminhome/product_add.html',context)
-
-# @login_required(login_url='admin_login')
-# def admin_product_edit(request, id):
-#     product = get_object_or_404(Product, id=id)
-#     brands = Brand.objects.all()
-#     categories = category.objects.all()
-
-#     ImageFormSet = modelformset_factory(ProductImages, form=ProductImagesForm, extra=1, can_delete=True)
-#     image_queryset = ProductImages.objects.filter(product=product)
-#     formset = ImageFormSet(queryset=image_queryset)
-
-
-#     if request.method == 'POST':
-#         product_form = ProductForm(request.POST, instance=product)
-#         formset = ImageFormSet(request.POST, request.FILES, queryset=ProductImages.objects.filter(product=product), prefix='images')
-
-#         if product_form.is_valid() and formset.is_valid():
-#             product_form.save()
-
-#             for form in formset:
-#                 instance = form.save(commit=False)
-#                 instance.product = product
-#                 instance.save()
-
-#             return redirect('admin_product')
-
-#     else:
-#         product_form = ProductForm(instance=product)
-#         formset = ImageFormSet(queryset=ProductImages.objects.filter(product=product), prefix='images')
-
-#     context = {
-#         'product': product,
-#         'brands': brands,
-#         'categories': categories,
-#         'formset': formset,
-#         'product_form': product_form,
-#     }
-
-#     return render(request, 'adminhome/product_edit.html', context)
-
-
 
 @login_required(login_url='admin_login')
 def admin_product_edit(request, id):
@@ -624,52 +597,6 @@ def cancell_order(request, order_number):
 
     return redirect('order')
 
-# def cancell_order(request, order_number):
-#     print("cancelllllllllllllllll")
-#     if not request.user.is_superadmin:
-#         return redirect('admin_login')
-
-#     try:
-#         order = CartOrder.objects.get(id=order_number)
-#     except CartOrder.DoesNotExist:
-#         messages.error(request, f"Order with ID {order_number} does not exist.")
-#         return redirect('order')
-
-#     if order.status == 'Cancelled':
-#         messages.warning(request, f"Order with ID {order_number} is already cancelled.")
-#     else:
-#         print("cancelllllllllllllllll111111111111111111111111111111")
-#         order.status = 'Cancelled'
-#         order.save()
-
-#         if order.payment.payment_method in ['Razorpay','Wallet']:
-#             print("cancelllllllllllllllll1222222222222222222222222222")
-#             # Retrieve the Wallet associated with the user
-#             user_wallet = order.user.wallet if hasattr(order.user, 'wallet') else None
-            
-#             if user_wallet:
-#                 print("Wallletttttttttttttttttttttttt")
-#                 user_wallet.balance += order.order_total
-#                 user_wallet.save()
-
-#                 WalletHistory.objects.create(
-#                     wallet=user_wallet,
-#                     type='Credited',
-#                     amount=order.order_total,
-#                     created_at=timezone.now(),
-#                     reason='Admin Cancelation'
-#                 )
-
-#         for order_item in order.productorder_set.all():
-#             print("cancelllll333333333333333333333333333333333333333333333")
-#             product_attribute = order_item.variations
-#             product_attribute.stock += order_item.quantity 
-#             product_attribute.save()
-
-#         messages.success(request, f"Order with ID {order_number} has been cancelled successfully.")
-
-#     return redirect('order')
-
 #=========================================================== sales_report ==================================================================================================================================================
 
 def sales_report(request):
@@ -704,36 +631,6 @@ def sales_report(request):
     return render(request,'adminhome/sales_report.html',context)
 
 #============================================= add and delete the product offer ==================================================================================================================================================================
-# def add_product_offer(request):
-
-#     try:
-#         product_offers = ProductOffer.objects.all()
-#     except:
-#         pass
-
-#     if request.method == 'POST':
-#         form = ProductOfferForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             product_offer = form.save()
-
-#             # Update the offer_price in the associated ProductAttribute
-#             product_offers = ProductAttribute.objects.filter(product=product_offer.product)
-#             product_offers.update(price=F('price') - (F('price') * product_offer.discount / 100))
-
-#             return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
-#     else:
-#         form = ProductOfferForm()
-
-#     return render(request, 'adminhome/product_offer.html', {'form': form, 'product_offers': product_offers})
-
-# def delete_offer(request, offer_id):
-#     product_offer = get_object_or_404(ProductOffer, pk=offer_id)
-#     product_offers = ProductAttribute.objects.filter(product=product_offer.product)
-#     product_offers.update(price=F('price') + (F('price') * product_offer.discount / 100))
-
-#     product_offer.delete()
-
-#     return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/')) 
 
 def product_offers(request):
     offers=ProductOffer.objects.all()
@@ -973,7 +870,157 @@ def delete_category_offer(request,id):
     messages.warning(request,"Offer has been deleted successfully")
 
     return redirect('category-offers')
+#================================================banner==============================================================================================================================================================================================
+
+def admin_banner(request):
+    if not request.user.is_superadmin:
+        return redirect('admin_login')
+    today = timezone.now().date()
+    banners = Banner.objects.all()
+    for banner in banners:
+        banner.is_active=banner.update_status()
+        banner.save()
+
+    return render(request, 'adminhome/admin_banner.html',{'banners':banners})
 
 
+def create_banner(request):
+    if not request.user.is_superadmin:
+        redirect('admin_login')
+    if request.method == 'POST':
+        form = BannerForm(request.POST, request.FILES)
+        if form.is_valid:
+            form.save()
+            return redirect('admin_banner')
+    else:
+        form = BannerForm()
+
+    return render(request,'adminhome/banner_create.html',{'form':form})
+
+def update_banner(request, id):
+    if not request.user.is_superadmin:
+        return redirect('admin_login')
+    
+    banner = get_object_or_404(Banner,id=id)
+    if request.method == 'POST':
+        form = BannerForm(request.POST, request.FILES , instance=banner)
+        if form.is_valid:
+            form.save()
+            return redirect('admin_banner')
+        
+    else:
+        form = BannerForm(instance=banner)
+    context={
+        'form':form,
+        'banner':banner
+    }
+    return render(request, 'adminhome/banner_update.html',context)
+
+def delete_banner(request, id):
+    if not request.user.is_superadmin:
+        redirect('admin_login')
+    
+    try:
+        banner = get_object_or_404(Banner,id=id)
+    except ValueError:
+        return redirect('admin_banner')
+    banner.delete()
+    messages.warning(request,"Banner delete successfully")
+    return redirect('admin_banner')
+
+
+#================================coupone==================================================================================================================================================================================================================================================
+
+def admin_coupon(request):
+    if not request.user.is_superadmin:
+        return redirect('admin_login')
+    coupon = Coupon.objects.all()
+    return render(request, 'adminhome/admin_coupon.html',{'coupon':coupon})
+def create_coupon(request):
+    if not request.user.is_superadmin:
+        return redirect('admin_login')
+    if request.method == 'POST':
+        code = request.POST['code']
+        discount = request.POST['discount']
+        active = request.POST.get('active') == 'on'
+        active_date = request.POST['active_date']
+        expiry_date = request.POST['expiry_date']
+
+        # Check if active_date is not greater than expiry_date
+        if active_date > expiry_date:
+            messages.error(request, 'Active date should not be greater than expiry date')
+            return render(request, 'adminhome/create_coupon.html')
+
+        # Check if the coupon with the same code already exists
+        if Coupon.objects.filter(code=code).exists():
+            messages.error(request, f'Coupon with code {code} already exists')
+            return render(request, 'adminhome/create_coupon.html')
+
+        coupon = Coupon(
+            code=code,
+            discount=discount,
+            active=active,
+            active_date=active_date,
+            expiry_date=expiry_date
+        )
+        coupon.save()
+        messages.success(request, 'Coupon created successfully')
+        return redirect('admin_coupon')
+
+    return render(request, 'adminhome/create_coupon.html')
+
+
+@login_required(login_url='admin_login')
+def edit_coupon(request,id):
+    if not request.user.is_superadmin:
+        return redirect('admin_login')
+    
+    coupon_code = get_object_or_404(Coupon, id=id)
+    print(f'Active Date: {coupon_code.active_date}')
+    if request.method == 'POST':
+        code = request.POST['code']
+        discount = request.POST['discount']
+        active = request.POST.get('active') == 'on'
+        active_date = request.POST['active_date']
+        expiry_date = request.POST['expiry_date']
+        
+
+        # Check if active_date is not greater than expiry_date
+        if active_date > expiry_date:
+            messages.error(request, 'Active date should not be greater than expiry date')
+            return render(request, 'admintemp/create-coupon.html')
+        
+        coupon_code.code=code
+        coupon_code.discount=discount
+        coupon_code.active_date=active_date
+        coupon_code.expiry_date=expiry_date
+        coupon_code.active=active
+        coupon_code.save()
+        messages.success(request, 'Coupon Updated successfully')
+        return redirect('admin_coupon')
+    
+        
+    
+    return render (request, 'adminhome/update_coupon.html',{'coupon_code':coupon_code})
+
+
+@login_required(login_url='admin_login')        
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+def delete_coupon(request,id):
+    if not request.user.is_superadmin:
+        return redirect('admin_login')
+    
+    try:
+        coupon= get_object_or_404(Coupon, id=id)
+    except ValueError:
+        return redirect('admin_coupon')
+    coupon.delete()
+    messages.warning(request,"Coupon has been deleted successfully")
+
+    return redirect('admin_coupon')
+
+
+
+        
 #================================================================ THE END ======================================================================================================================================================================================================
 

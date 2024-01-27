@@ -61,15 +61,26 @@
                 </li>
                 <li class="menu-item has-submenu">
                     <a class="menu-link" href="page-form-product-1.html"> <i class="icon material-icons md-stars"></i>
-                        <span class="text">Offer</span>
+                        <span class="text">Offer & Coupon</span>
                     </a>
                     <div class="submenu">
                         <a href="{% url 'product-offers' %}">Product Offer</a>
                         <a href="{% url 'category-offers'  %}">Category Offers</a>
+                        <a href="{% url 'admin_coupon'  %}">Coupon</a>
                     
                         
                     </div>
                 </li>
+                <li class="menu-item has-submenu">
+                    <a class="menu-link" href="#"> <i class="icon material-icons md-person"></i>
+                        <span class="text">Banner</span>
+                    </a>
+                    <div class="submenu">
+                        <a href="{% url 'admin_banner'%}">banner</a>
+                        
+                    </div>
+                </li>
+                
                 <li class="menu-item has-submenu">
                     <a class="menu-link" href="page-form-product-1.html"> <i class="icon material-icons md-settings"></i>
                         <span class="text">Account</span>
@@ -80,6 +91,8 @@
                         
                     </div>
                 </li>
+               
+
                 {% comment %} <li class="menu-item has-submenu">
                     <a class="menu-link" href="page-transactions-1.html"> <i class="icon material-icons md-monetization_on"></i>
                         <span class="text">Transactions</span>

@@ -1,6 +1,6 @@
 from payment.models import CartOrder
 from django import forms
-from .models import ProductOffer,CategoryOffer
+from .models import ProductOffer,CategoryOffer,Banner,Coupon
 from django.core.exceptions import ValidationError
 from django.forms.widgets import DateInput
 from home.models import category
@@ -12,19 +12,6 @@ class OrderForm(forms.ModelForm):
         widgets = {
             'status': forms.Select(attrs={'class': 'form-control'})  # Apply attrs to the Select widget
         }
-
-# class ProductOfferForm(forms.ModelForm):
-#     class Meta:
-#         model = ProductOffer
-#         fields = ['title', 'product','end_date', 'discount','image']
-#         widgets = {
-#             'product': forms.Select(attrs={'class': 'form-control'}),
-#             'end_date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-#             'title': forms.TextInput(attrs={'class': 'form-control'}),
-#             'discount': forms.NumberInput(attrs={'class': 'form-control'}),
-#             'image': forms.FileInput(attrs={'class': 'form-control'}),
-            
-#         }
 
 class ProductOfferForm(forms.ModelForm):
     class Meta:
@@ -79,3 +66,21 @@ class CategoryOfferForm(forms.ModelForm):
             raise ValidationError('A product offer is already active. Deactivate it before activating a category offer.')
 
         return active
+    
+class BannerForm(forms.ModelForm):
+    class Meta:
+        model = Banner
+        fields = ['title','image','description1','description2','description3','start_date','end_date','is_active']
+        widgets ={
+            'title' : forms.TextInput(attrs={'class':'form-control'}),
+            'description1' : forms.Textarea(attrs={'class':'form-control','row':4}),
+            'description2' : forms.Textarea(attrs={'class':'form-control','row':4}),
+            'description3' : forms.Textarea(attrs={'class':'form-control','row':4}),
+            'is_active' : forms.CheckboxInput(attrs={'class':'form-check-input'}),
+            'start_date' : forms.DateInput(attrs={'class':'form-control'}),
+            'end_date' : forms.DateInput(attrs={'class':'form-control'}),
+
+        }
+
+class CouponForm(forms.Form):
+    code = forms.CharField(max_length=50)
