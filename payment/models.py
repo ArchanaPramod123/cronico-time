@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 
 from home.models import User,Product,ProductAttribute
+from adminhome.models import Coupon
 
 
 
@@ -24,6 +25,7 @@ class CartItem(models.Model):
     total=models.BigIntegerField(null=True)
     timestamp = models.DateTimeField(default=timezone.now,null=True)
     address = models.ForeignKey(Address, null=True, blank=True, on_delete=models.SET_NULL)
+    coupon=models.ForeignKey(Coupon, on_delete=models.CASCADE, null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
 
     def __str__(self):
@@ -90,6 +92,7 @@ class CartOrder(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=True)
     updated_at=models.DateTimeField(auto_now=True)
     selected_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)
+    coupen=models.ForeignKey(Coupon, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         verbose_name_plural = "Cart Order"

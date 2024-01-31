@@ -7,7 +7,9 @@ from django.views.decorators.cache import never_cache, cache_control
 from django.contrib.auth import update_session_auth_hash
 import random
 from payment.forms import AddressForm
-from django.db.models import F
+from django.db.models import F 
+from django.db.models import OuterRef, Subquery
+from django.views.decorators.cache import cache_page
 from .context_processors import *
 from django.contrib.auth import logout,login
 from django.core.mail import send_mail
@@ -24,16 +26,26 @@ from django.utils.crypto import get_random_string
 from django.utils.datastructures import MultiValueDictKeyError
 from django.template.loader import render_to_string
 from django.db.models import Sum
-from adminhome.models import ProductOffer,CategoryOffer,Banner
+from adminhome.models import ProductOffer,CategoryOffer,Banner,Coupon
 from payment.models import Address,CartOrder,CartItem,ProductOrder,Payments,Wallet,WalletHistory
 from .models import Product,category,User,ProductImages,ProductAttribute,Color,WishlistItem
 # Create your views here.
 
 #===============================user index==============================================================================================================================================================
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+# @cache_control(max_age=0,no_cache=True, must_revalidate=True, no_store=True)
+
+# @never_cache
+@cache_page(0, key_prefix='')
 def user_index(request):
     products = Product.objects.filter(featured=True,category__is_deleted=False,category__is_blocked=False).order_by('-id').distinct()
     banners =Banner.objects.filter(is_active=True)
+      # Check if the order_placed flag is present in the session
+    if request.session.get('order_placed', False):
+        # Clear the flag to allow normal navigation
+        del request.session['order_placed']
+        messages.success(request, 'Order placed successfully!')
+        return redirect('user_index') 
+    
     try:
         discount_offer = ProductOffer.objects.get(active=True)
     except ProductOffer.DoesNotExist:
@@ -265,7 +277,9 @@ def shop(request, category_id=None,brand_id=None):
             category=selected_category,
             is_available=True,
             is_deleted=False,
-            brand__is_active=True
+            brand__is_active=True,
+            category__is_deleted=False,
+            category__is_blocked=False
         )
         product_count = products.count()
 
@@ -276,7 +290,9 @@ def shop(request, category_id=None,brand_id=None):
             brand=selected_brand,
             is_available=True,
             is_deleted=False,
-            brand__is_active=True
+            brand__is_active=True,
+            category__is_deleted=False,
+            category__is_blocked=False
         )
         product_count = products.count()
 
@@ -284,6 +300,14 @@ def shop(request, category_id=None,brand_id=None):
         # If neither category_id nor brand_id is present, retrieve all products
         products = Product.objects.filter(is_available=True, is_deleted=False, brand__is_active=True ,category__is_deleted=False,category__is_blocked=False)
         product_count = products.count()
+
+    # min_max_price = Product.objects.filter(
+    #     is_available=True,
+    #     is_deleted=False,
+    #     brand__is_active=True,
+    #     category__is_deleted=False,
+    #     category__is_blocked=False
+    # ).aggregate(price__min=Min('productattribute_set__price'), price__max=Max('productattribute_set__price'))
     context = {
         'products': products,
         'product_count': product_count,
@@ -293,6 +317,7 @@ def shop(request, category_id=None,brand_id=None):
         "discounted_offer":discounted_offer,
         'selected_brand': selected_brand,
         'brands': brands,
+        
         # 'category_id': category_id if 'category_id' in request.GET else None,
         # 'discount':discount,
     }
@@ -304,8 +329,29 @@ def shop(request, category_id=None,brand_id=None):
 
 def search(request):
     q=request.GET['q']
+    try:
+        discount_offer = ProductOffer.objects.get(active=True)
+    except ProductOffer.DoesNotExist:
+        discount_offer = None
+    if discount_offer:
+        current_date = timezone.now()
+        if current_date > discount_offer.end_date or current_date < discount_offer.start_date:
+            discount_offer.active = False
+            discount_offer.save()
+    try:
+        
+        discounted_offer = CategoryOffer.objects.filter(active=True)
+    except ProductOffer.DoesNotExist:
+        discounted_offer = None
+    if discounted_offer:
+        for dis in discounted_offer:
+            products_with_discount = Product.objects.filter(category=dis.category, is_available=True)
+            current_date = timezone.now()
+            if current_date > dis.end_date or current_date < dis.start_date:
+                dis.active = False
+                dis.save()
     data = Product.objects.filter(product_name__icontains=q).order_by('-id')
-    return render(request,'userhome/search.html',{'data':data})
+    return render(request,'userhome/search.html',{'data':data,"discount_offer":discount_offer,"discounted_offer":discounted_offer,})
 
 #===============================click the product it view the product details==================================================================================================================================================
 
@@ -380,14 +426,24 @@ def add_to_cart(request):
         print(f"Selected Quantity: {qty}")
         if qty > product.stock:
             messages.error(request, f"Insufficient stock. Only {product.stock} available.")
-            return JsonResponse({'status': 'error', 'message': 'Insufficient stock.'}, status=400)
+            response_data = {
+            'status': 'error',
+            'message': f"Insufficient stock. Only {product.stock} available."
+            
+            }
+            return JsonResponse(response_data)
 
         try:
             cart_item = CartItem.objects.get(product=product, user=user, is_deleted=False)
             available_stock = product.stock - cart_item.quantity  # Calculate available stock
             if qty > available_stock:
                 messages.error(request, f"Stock limit reached. Only {available_stock} available.")
-                return JsonResponse({'status': 'error', 'message': f"Stock limit reached. Only {available_stock} available."}, status=400)
+                response_data = {
+                    'status': 'error',
+                    'message': f"Stock limit reached. Only {available_stock} available."
+                    
+                    }
+                return JsonResponse(response_data)
 
             cart_item.quantity += qty  # Update the quantity
             cart_item.total = product.price * cart_item.quantity
@@ -405,6 +461,7 @@ def add_to_cart(request):
             'message': 'Product added to cart successfully',
             'cart_count': cart_count
         }
+        # messages.success(request, 'Product added to cart successfully')
         return JsonResponse(response_data)
     else:
         print('Invalid request or not AJAX')  # Print the error
@@ -413,40 +470,279 @@ def add_to_cart(request):
 
 
 #======================================== cart-list page ============================================================================================================================================================================
-@login_required(login_url='user_login')
-def cart_list(request):
-    user=request.user 
-    items=CartItem.objects.filter(user=user, is_deleted=False)
-    ct=items.count()
-  
-    total = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+# @login_required(login_url='user_login')
+# def cart_list(request):
+#     user=request.user 
+#     items=CartItem.objects.filter(user=user, is_deleted=False)
+#     coupons=Coupon.objects.all()
+#     ct=items.count()
+
+
+#      # Calculate total without discounts
+#     total_without_discount = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+#     # Initialize discounts to zero
+#     discounts = 0
+
+#     # Check if a coupon is applied in the session
+#     applied_coupon_id = request.session.get('applied_coupon_id')
+#     if applied_coupon_id:
+#         try:
+#             applied_coupon = Coupon.objects.get(id=applied_coupon_id, active=True,
+#                                                 active_date__lte=timezone.now(), expiry_date__gte=timezone.now())
+#             discounts = (total_without_discount * applied_coupon.discount) / 100
+#         except Coupon.DoesNotExist:
+#             # If the applied coupon is not found, clear the session
+#             request.session.pop('applied_coupon_id', None)
+
+#     if request.method == "POST":
+#         coupon_code = request.POST.get('coupon_code')
+#         try:
+#             coupon = Coupon.objects.get(code=coupon_code, active=True, active_date__lte=timezone.now(),
+#                                         expiry_date__gte=timezone.now())
+
+#             # Check if the coupon is already applied
+#             if applied_coupon_id == coupon.id:
+#                 messages.error(request, 'Coupon has already been applied')
+#             else:
+#                 # Calculate the discount and update CartItem instances
+#                 discounts = (total_without_discount * coupon.discount) / 100
+#                 items.update(coupen=coupon)
+
+#                 # Store applied coupon ID in the session
+#                 request.session['applied_coupon_id'] = coupon.id
+
+#                 messages.success(request, 'Coupon applied successfully!')
+#         except Coupon.DoesNotExist:
+#             messages.error(request, 'Invalid or expired coupon code')
+
+#     # Recalculate total after discounts
+#     total_after_discount = total_without_discount - discounts
+
+
+
+
+   
+
+#     context={
+#         'items':items,
+#         'totals':total_without_discount ,
+#         'total':total_after_discount,
+#         'ct':ct,
+#         'coupons':coupons,
+#         'discounts': discounts,
+#     }
+    
  
-    return render(request,'userhome/cart.html',{'items':items,'total':total,'ct':ct})
-       
+#     return render(request,'userhome/cart.html',context)
+@login_required(login_url='user_login')  
+@never_cache
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+ 
+def cart_list(request):
+    user = request.user
+    items = CartItem.objects.filter(user=user, is_deleted=False)
+    coupons = Coupon.objects.all()
+    ct = items.count()
+
+    # Calculate total without discounts
+    total_without_discount = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+    # Initialize discounts to zero
+    discounts = 0
+
+    # Check if a coupon is applied in the session
+    applied_coupon_id = request.session.get('applied_coupon_id')
+
+     # Check if the order_placed flag is present in the session
+    if request.session.get('order_placed', False):
+        # Clear the flag to allow normal navigation
+        del request.session['order_placed']
+        messages.success(request, 'Order placed successfully!')
+        return redirect('user_index')  # Replace 'index' with your actual index URL or name
+
+    if applied_coupon_id:
+        try:
+            applied_coupon = Coupon.objects.get(id=applied_coupon_id, active=True,
+                                                active_date__lte=timezone.now(), expiry_date__gte=timezone.now())
+            discounts = (total_without_discount * applied_coupon.discount) / 100
+        except Coupon.DoesNotExist:
+            # If the applied coupon is not found, clear the session
+            request.session.pop('applied_coupon_id', None)
+
+    if request.method == "POST":
+        if 'apply_coupon' in request.POST:
+            coupon_code = request.POST.get('coupon_code')
+            try:
+                coupon = Coupon.objects.get(code=coupon_code, active=True, active_date__lte=timezone.now(),
+                                            expiry_date__gte=timezone.now())
+
+                # Calculate the discount and update CartItem instances
+                discounts = (total_without_discount * coupon.discount) / 100
+                items.update(coupon=coupon)
+
+                # Store applied coupon ID in the session
+                request.session['applied_coupon_id'] = coupon.id
+
+                messages.success(request, 'Coupon applied successfully!')
+            except Coupon.DoesNotExist:
+                messages.error(request, 'Invalid or expired coupon code')
+
+        elif 'remove_coupon' in request.POST:
+            # Remove the applied coupon
+            # request.session.pop('applied_coupon_id', None)
+            # items.update(coupon=None)
+
+          
+            # messages.success(request, 'Coupon deleted successfully!')
+
+             # Remove the applied coupon
+            request.session.pop('applied_coupon_id', None)
+
+            # Calculate new totals after removing the coupon
+            total_without_discount = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+            discounts = 0
+
+            # Update discounts based on applied coupon
+            applied_coupon_id = request.session.get('applied_coupon_id')
+            if applied_coupon_id:
+                try:
+                    applied_coupon = Coupon.objects.get(id=applied_coupon_id, active=True,
+                                                        active_date__lte=timezone.now(), expiry_date__gte=timezone.now())
+                    discounts = (total_without_discount * applied_coupon.discount) / 100
+                except Coupon.DoesNotExist:
+                    request.session.pop('applied_coupon_id', None)
+
+            # Update items after calculating totals and discounts
+            items.update(coupon=None)
+
+            total_after_discount = total_without_discount - discounts
+
+            # Return JSON response with updated data
+            data = {
+                'success': True,
+                'totals': total_without_discount,
+                'discounts': discounts,
+                'total': total_after_discount,
+            }
+
+            messages.success(request, 'Coupon removed successfully!')
+                    
+
+            # messages.success(request, 'Coupon removed successfully!')
+
+    # Recalculate total after discounts
+    total_after_discount = total_without_discount - discounts
+
+
+
+
+    context = {
+        'items': items,
+        'totals': total_without_discount,
+        'total': total_after_discount,
+        'ct': ct,
+        'coupons': coupons,
+        'discounts': discounts,
+    }
+    # Store the calculated values in the session
+    request.session['totals'] = total_without_discount
+    request.session['total'] = total_after_discount
+    request.session['discounts'] = discounts
+
+
+    return render(request, 'userhome/cart.html', context)
+
+def remove_coupon(request):
+    try:
+        # Remove the applied coupon from the session
+        request.session.pop('applied_coupon_id', None)
+
+        # Clear the coupon from CartItem instances
+        user = request.user
+        items = CartItem.objects.filter(user=user, is_deleted=False)
+        items.update(coupon=None)
+
+        # Calculate new totals after removing the coupon
+        total_without_discount = items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+        discounts = 0
+
+        # Update discounts based on applied coupon
+        applied_coupon_id = request.session.get('applied_coupon_id')
+        if applied_coupon_id:
+            try:
+                applied_coupon = Coupon.objects.get(id=applied_coupon_id, active=True,
+                                                    active_date__lte=timezone.now(), expiry_date__gte=timezone.now())
+                discounts = (total_without_discount * applied_coupon.discount) / 100
+            except Coupon.DoesNotExist:
+                request.session.pop('applied_coupon_id', None)
+
+        total_after_discount = total_without_discount - discounts
+        
+
+        # Return JSON response with updated data
+        data = {
+            'success': True,
+            'totals': total_without_discount,
+            'discounts': discounts,
+            'total': total_after_discount,
+        }
+
+        messages.success(request, 'Coupon removed successfully!')
+
+    except Exception as e:
+        # Handle exceptions and return error message
+        data = {'success': False, 'error': str(e)}
+
+    return JsonResponse(data)
+
+
 #========================================= qunatity updation and delete cart item ================================================================================================================================================
+
 @login_required(login_url='user_login')
 def qty_update(request):
     user = request.user
     item_id = request.GET.get('item_id')
     new_quantity = int(request.GET.get('new_quantity'))
-    # print(item_id)
-    # print(new_quantity)
-    cart_items = CartItem.objects.all().filter(is_deleted=False, user=user)
-    
+
     cart_item = get_object_or_404(CartItem, id=item_id)
-    now=timezone.now()
+    now = timezone.now()
 
     if new_quantity > cart_item.product.stock:
         return JsonResponse({'error': 'Insufficient stock.', 'success': False}, status=400)
 
     # Update the quantity in the database
     cart_item.quantity = new_quantity
-    cart_item.total = cart_item.product.price * new_quantity 
+    cart_item.total = cart_item.product.price * new_quantity
     cart_item.save()
-    # total_price = CartItem.objects.filter(user=user, is_deleted=False).aggregate(total=Sum('total'))['total'] or 0
-    total_price = cart_items.aggregate(total=Sum('total'))['total']
-    
-    response_data = {'new_qty':new_quantity,'new_price':cart_item.total,'total':total_price}
+
+    # Recalculate the total without discounts
+    total_without_discount = CartItem.objects.filter(user=user, is_deleted=False).aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+    # Initialize discounts to zero
+    discounts = 0
+
+    # Check if a coupon is applied in the session
+    applied_coupon_id = request.session.get('applied_coupon_id')
+    if applied_coupon_id:
+        try:
+            applied_coupon = Coupon.objects.get(id=applied_coupon_id, active=True,
+                                                active_date__lte=timezone.now(), expiry_date__gte=timezone.now())
+            discounts = (total_without_discount * applied_coupon.discount) / 100
+        except Coupon.DoesNotExist:
+            # If the applied coupon is not found, clear the session
+            request.session.pop('applied_coupon_id', None)
+
+    # Recalculate total after discounts
+    total_after_discount = total_without_discount - discounts
+
+    response_data = {
+        'new_qty': new_quantity,
+        'new_price': cart_item.total,
+        'totals': total_without_discount,
+        'discounts': discounts,
+        'total': total_after_discount
+    }
     return JsonResponse(response_data)
 
 @login_required(login_url='user_login')
@@ -457,33 +753,85 @@ def delete_cart_item(request):
     try:
         cart_item = CartItem.objects.get(id=item_id, user=user)
         cart_item.delete()
-        # cart_item.is_deleted = True
-        # cart_item.save()
 
-        # Recalculate the total
+        # Recalculate the total, cart total, and discount
         cart_items = CartItem.objects.filter(user=user, is_deleted=False)
-        total = cart_items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+        totals = cart_items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+        # Calculate the discount
+        applied_coupon_id = request.session.get('applied_coupon_id')
+        discounts = 0
+        if applied_coupon_id:
+            try:
+                applied_coupon = Coupon.objects.get(id=applied_coupon_id, active=True,
+                                                    active_date__lte=timezone.now(), expiry_date__gte=timezone.now())
+                discounts = (totals * applied_coupon.discount) / 100
+            except Coupon.DoesNotExist:
+                request.session.pop('applied_coupon_id', None)
+
+        # Calculate the cart total (subtotal)
+        cart_total = totals - discounts
 
         cart_count = cart_items.count()
-         # Check if the cart is empty
-        # is_cart_empty = CartItem.objects.filter(user=user, is_deleted=False).count() == 0
-         # Check if the cart is empty
         is_cart_empty = cart_items.count() == 0
 
-        return JsonResponse({'success': True, 'total': total, 'is_cart_empty': is_cart_empty, 'cart_count': cart_count})
+        return JsonResponse({
+            'success': True,
+            'totals': totals,
+            'discounts': discounts,
+            'total': cart_total,
+            'is_cart_empty': is_cart_empty,
+            'cart_count': cart_count
+        })
     except CartItem.DoesNotExist:
         return JsonResponse({'error': 'Item not found in the cart'})
     except Exception as e:
-        return HttpResponseBadRequest(f"Error: {str(e)}")
+        return JsonResponse({'error': str(e)})
+
+# @login_required(login_url='user_login')
+# def delete_cart_item(request):
+#     user = request.user
+#     item_id = request.GET.get('item_id')
+
+#     try:
+#         cart_item = CartItem.objects.get(id=item_id, user=user)
+#         cart_item.delete()
+#         # cart_item.is_deleted = True
+#         # cart_item.save()
+
+#         # Recalculate the total
+#         cart_items = CartItem.objects.filter(user=user, is_deleted=False)
+#         total = cart_items.aggregate(total_sum=Sum('total'))['total_sum'] or 0
+
+#         cart_count = cart_items.count()
+#          # Check if the cart is empty
+#         # is_cart_empty = CartItem.objects.filter(user=user, is_deleted=False).count() == 0
+#          # Check if the cart is empty
+#         is_cart_empty = cart_items.count() == 0
+
+#         return JsonResponse({'success': True, 'total': total, 'is_cart_empty': is_cart_empty, 'cart_count': cart_count})
+#     except CartItem.DoesNotExist:
+#         return JsonResponse({'error': 'Item not found in the cart'})
+#     except Exception as e:
+#         return HttpResponseBadRequest(f"Error: {str(e)}")
 
 #======================================= user account ====================================================================================================================================
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@cache_control(max_age=0,no_cache=True, must_revalidate=True, no_store=True)
 @login_required(login_url='user_login')
 
 def user_account(request):
     user_address = Address.objects.filter(users=request.user)
-    order_history = CartOrder.objects.filter(user=request.user).order_by('-id').annotate(product_name=F('productorder__product__product_name'),product_image=F('productorder__product__productattribute__image'))
+    
+    order_history = CartOrder.objects.filter(user=request.user).order_by('-id').annotate(product_name=Subquery(
+        ProductOrder.objects.filter(order=OuterRef('pk')).order_by('id').values('product__product_name')[:1]
+    ),
+    product_image=Subquery(
+        ProductOrder.objects.filter(order=OuterRef('pk')).order_by('id').values('product__productattribute__image')[:1]
+    ))
     order_items = ProductOrder.objects.filter(user=request.user)
+    for order in order_history:
+        print(order.product_image)
+    
 
     wallet, created = Wallet.objects.get_or_create(user=request.user, defaults={'balance': 0})
     
@@ -712,7 +1060,7 @@ def filter_product(request):
         min_price= request.GET['min_price']
         max_price= request.GET['max_price'] 
 
-        products = Product.objects.filter(is_available=True).order_by('-id').distinct()
+        products = Product.objects.filter(is_available=True,category__is_deleted=False,category__is_blocked=False, productattribute__is_deleted=False).order_by('-id').distinct()
         # discount =ProductOffer.objects.filter(is_active=True)
         try:
             discount_offer = ProductOffer.objects.get(active=True)

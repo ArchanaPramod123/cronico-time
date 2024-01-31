@@ -102,6 +102,7 @@
                                     {% comment %} {% endif %}   {% endcomment %}
                                     <td>{{item.quantity}}</td>
                                     <td>₹{{item.subtotal}}</td>
+                                    
                     
                     
                     
@@ -110,6 +111,13 @@
             </tbody>
         </table>
         <br>
+        {% if coupon != None%}
+        <div class="total">
+            
+            <p><strong>coupon : {{coupon }}</strong></p>
+           
+        </div>
+        {% endif %}
         <div class="total">
             
             <p><strong>Order Total: ₹{{grand_total }}</strong></p>

@@ -33,6 +33,7 @@
         }
         </script>
     <section class="mt-50 mb-50">
+        
         <div class="container">
             {% comment %} <div class="row">
                 <div class="col-lg-6">
@@ -144,17 +145,38 @@
                                         <td>₹{{item.total}}</td>
                                     </tr>
                                     {% endfor %}
+                                    <tr>
+                                        <td class="cart_total_label">cart</td>
+                                        <td colspan="2" class="cart_total_amount" id='discounts'> <i class="ti-gift mr-5"></i> ₹{{totals}}</td>
+                                      </tr>
+
+                                    <tr>
+                                        <td class="cart_total_label">Coupen Descount</td>
+                                        <td colspan="2" class="cart_total_amount" id='discounts'> <i class="ti-gift mr-5"></i> ₹{{discounts}}</td>
+                                      </tr>
                                     
                                    
                                     <tr>
                                         <th>Total</th>
-                                        <td colspan="2" class="product-subtotal">₹<span class="font-xl text-brand fw-900">{{total }}</span></td>
+                                        <td colspan="2" class="product-subtotal"><span class="font-xl text-brand fw-900">₹{{total }}</span></td>
                                     </tr>
                                     
                                 </tbody>
                             </table>
                         </div>
-                        <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                        <div class="bt-1 border-color-1 mt-30 mb-30">
+                        </div>
+                        {% if messages %}
+                                      <div class="messages">
+                                          <ul class="messages">
+                                              {% for message in messages %}
+                                                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                              {% endfor %}
+                                          </ul>
+                                      </div>
+                                  {% endif %}
+                  </div>
+                        </div>
                     </div>
                 </div>
             </div>

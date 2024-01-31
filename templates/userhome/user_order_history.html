@@ -23,6 +23,12 @@
                                     <th>Order Id</th>
                                     <td>{{order.order_number}}</td>
                                 </tr>
+                                {% if order.coupen != None%}
+                                <tr>
+                                    <th>Coupon</th>
+                                    <td>{{order.coupen}}</td>
+                                </tr>
+                                {% endif %}
                                 <tr>
                                     <th>Total amount</th>
                                     <td>₹{{order.order_total}}</td>
@@ -90,6 +96,7 @@
                                         <td>{{ item.variations.color }}</td>
                                         <td>₹{{ item.product_price }}</td>
                                         <td>{{ item.quantity }}</td>
+                                        
                                         <td>₹{{ item.subtotal }}</td>
                                     </tr>
                                     {% endfor %}

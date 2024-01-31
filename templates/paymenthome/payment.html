@@ -5,7 +5,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/latest/css/all.min.css" integrity="actual-integrity-value" crossorigin="anonymous" />
 
 
-
 <main class="main">
     <div class="page-header breadcrumb-wrap">
         <div class="container">
@@ -18,26 +17,7 @@
     </div>
     <section class="mt-50 mb-50">
         <div class="container">
-            <div class="row">
-                {% comment %} <div class="col-lg-6">
-                    <div class="toggle_info">
-                        <span><i class="fi-rs-label mr-10"></i><span class="text-muted">Have a coupon?</span> <a href="#coupon" data-bs-toggle="collapse" class="collapsed" aria-expanded="false">Click here to enter your code</a></span>
-                    </div>
-                    <div class="panel-collapse collapse coupon_form " id="coupon">
-                        <div class="panel-body">
-                            <p class="mb-30 font-sm">If you have a coupon code, please apply it below.</p>
-                            <form method="post">
-                                <div class="form-group">
-                                    <input type="text" placeholder="Enter Coupon Code...">
-                                </div>
-                                <div class="form-group">
-                                    <button class="btn  btn-md" name="login">Apply Coupon</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div> {% endcomment %}
-            </div>
+            
             <div class="row">
                 <div class="col-12">
                     <div class="divider mt-50 mb-50"></div>
@@ -50,25 +30,53 @@
                     </div>
                     
                     <div>
-                        {% if selected_address %}
-                        <div>
-                            <h5>Selected Address</h5>
-                            <p>Name: {{ selected_address.name }}</p>
-                            <p>Address: {{ selected_address.address }}</p>
-                            <p>Phone: {{ selected_address.phone }}</p>
-                            <p>District: {{ selected_address.district }}</p>
-                            <p>Pincode: {{ selected_address.pincode }}</p>
-                        </div>
-                    {% elif new_address %}
-                        <div>
-                            <h5>New Address</h5>
-                            <p>Name: {{ new_address.name }}</p>
-                            <p>Address: {{ new_address.address }}</p>
-                            <p>Phone: {{ new_address.phone }}</p>
-                            <p>District: {{ new_address.district }}</p>
-                            <p>Pincode: {{ new_address.pincode }}</p>
-                        </div>
-                    {% endif %}
+                        <table class="table">
+                            <tbody>
+                                {% if selected_address %}
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>{{ selected_address.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address:</th>
+                                        <td>{{ selected_address.address }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone:</th>
+                                        <td>{{ selected_address.phone }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>District:</th>
+                                        <td>{{ selected_address.district }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Pincode:</th>
+                                        <td>{{ selected_address.pincode }}</td>
+                                    </tr>
+                                {% elif new_address %}
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>{{ new_address.name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address:</th>
+                                        <td>{{ new_address.address }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone:</th>
+                                        <td>{{ new_address.phone }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>District:</th>
+                                        <td>{{ new_address.district }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Pincode:</th>
+                                        <td>{{ new_address.pincode }}</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
 
                     </div>
                 </div>
@@ -98,6 +106,15 @@
                                     </tr>
                                     {% endfor %}
                                 </form>
+                                <tr>
+                                    <td class="cart_total_label">cart</td>
+                                    <td colspan="2" class="cart_total_amount" id='discounts'> <i class="ti-gift mr-5"></i> ₹{{totals}}</td>
+                                  </tr>
+
+                                <tr>
+                                    <td class="cart_total_label">Coupen Descount</td>
+                                    <td colspan="2" class="cart_total_amount" id='discounts'> <i class="ti-gift mr-5"></i> ₹{{discounts}}</td>
+                                  </tr>
                                    
                                     <tr>
                                         <th>Total</th>
@@ -109,11 +126,24 @@
                         </div>
                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
                         <div class="btn-container d-flex justify-content-between">
-                        <form method="post" action="{% url 'wallet_place_order' %}" id="wallet-form">
-                            {% csrf_token %}
-                            <!-- Add any additional fields if needed -->
-                            <button type="submit" class="btn btn-primary">Wallet</button>
-                        </form>
+                            {% if total > wallet_balance %}
+                            <!-- Display a message or disable the wallet button -->
+                            
+                               <div>
+                                <!-- Add any additional fields if needed -->
+                                
+                                <button type="submit" class="btn btn-primary" disabled>Wallet</button>
+                                <p>insufficent balance </p>
+                            </div>
+                            
+                        {% else %}
+                            <!-- Allow the user to use the wallet -->
+                            <form method="post" action="{% url 'wallet_place_order' %}" id="wallet-form">
+                                {% csrf_token %}
+                                <!-- Add any additional fields if needed -->
+                                <button type="submit" class="btn btn-primary">Wallet</button>
+                            </form>
+                        {% endif %}
                         <div>
                             
                                 {% comment %} <input type="hidden" name="total" value="{{ total }}">
@@ -151,7 +181,12 @@
    
     <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI/t1pWC2JzucI3lGv3nANu29b8f0u6FqFn1kxj8=" crossorigin="anonymous"></script> 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+
+    
 <script>
 
     var options = {

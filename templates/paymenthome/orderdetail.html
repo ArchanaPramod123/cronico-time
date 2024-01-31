@@ -1,37 +1,87 @@
-{% extends 'paymenthome/base.html'%}
+{% extends 'paymenthome/base.html' %}
+<script>
+    // Disable back button
+    history.pushState(null, null, location.href);
+    window.onpopstate = function () {
+        history.go(1);
+    };
+</script>
 {% load static %}
 {% block content %}
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/latest/css/all.min.css" integrity="actual-integrity-value" crossorigin="anonymous" />
+<style>
+    .order_table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
+    .order_table th, .order_table td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
 
+    .order_table th {
+        background-color: #f2f2f2;
+    }
+
+    .total-amount {
+        font-size: 24px;
+        font-weight: bold;
+        color: #28a745; /* Green color for emphasis */
+    }
+
+    .back-to-home {
+        font-size: 18px;
+        margin-top: 20px;
+        display: inline-block;
+        text-decoration: none;
+        color: #007bff; /* Blue color for links */
+    }
+</style>
 
 <main class="main">
-    
     <section class="mt-50 mb-50">
         <div class="container">
-           
-            <div class="row">
+            <div class="row text-center">
                 <div class="col-12">
-                    <div class="divider mt-50 mb-50"></div>
+                    <div class="mb-4">
+                        <h2 class="display-4 caption">Order Successfully Placed</h2>
+                    </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-4">
+            <div class="row m-10">
+                <div class="col-md-6">
                     <div class="mb-25">
                         <h4>Billing Address</h4>
                     </div>
-                    
-                    <div>
-                        
-                        <p>Name: {{ order.selected_address.name }}</p>
-                        <p>Address: {{ order.selected_address.address }}</p>
-                        <p>Phone: {{ order.selected_address.phone }}</p>
-                        <p>District: {{ order.selected_address.district }}</p>
-                        <p>Pincode: {{ order.selected_address.pincode }}</p>
-                    </div>
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th>Name</th>
+                                <td>{{ order.selected_address.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Address</th>
+                                <td>{{ order.selected_address.address }}</td>
+                            </tr>
+                            <tr>
+                                <th>Phone</th>
+                                <td>{{ order.selected_address.phone }}</td>
+                            </tr>
+                            <tr>
+                                <th>District</th>
+                                <td>{{ order.selected_address.district }}</td>
+                            </tr>
+                            <tr>
+                                <th>Pincode</th>
+                                <td>{{ order.selected_address.pincode }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-6">
                     <div class="order_review">
                         <div class="mb-20">
                             <h4>Your Orders</h4>
@@ -61,20 +111,21 @@
                             </table>
                         </div>
                         <div class="bt-1 border-color-1 mt-30 mb-30"></div>
+                        {% if order.coupen != None%}
+                        <div class="font-l text-brand fw-600">Coupon: {{ order.coupen.discount }}% Applied</div>
+                        <br>
+                        {% endif %}
                         <div class="font-xl text-brand fw-900">Total: ₹{{ order.order_total }}</div>
                     </div>
                 </div>
+                <div class="col-12 mt-3">
+                    <div class="card-footer text-muted">
+                        <a href="{% url 'invoice' order.id %}" class="btn btn-primary">Download Invoice</a>
+                        <a href="{% url 'user_index'%}" class="btn btn-secondary">Back to Shop</a>
+                    </div>
+                </div>
             </div>
-            <div class="card-footer text-muted">
-                <a href="{% url 'invoice' order.id %}">Download Invoice</a>
-              </div>
-            
-        
+        </div>
     </section>
-   
-
-
-
-    
 </main>
 {% endblock %}

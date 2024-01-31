@@ -63,7 +63,7 @@ def admin_index(request):
         if order.status == 'Delivered':
             total += order.order_total
             
-        if (order.payment and order.payment.payment_method == 'Razorpay') or (order.payment and order.payment.payment_method == 'Wallet'):
+        if (order.payment and order.payment.payment_method == 'Razorpay' and order.status != 'Cancelled' ) or (order.payment and order.payment.payment_method == 'Wallet' and order.status != 'Cancelled'):
             total += order.order_total
     revenue=int(total)
     end_date = timezone.now()

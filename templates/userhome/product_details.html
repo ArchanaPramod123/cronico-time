@@ -14,6 +14,7 @@
     </div>
     <section class="mt-50 mb-50">
         <div class="container">
+           
             <div class="row">
                 <div class="col-lg-12">
                     <div class="product-detail accordion-detail">
@@ -167,7 +168,11 @@
                                         <button type="submit" class="addtocart" data-item-id="{{ product.id }}">Add To Cart</button>
                                     </form>
                                         </div>
-                                        <div id="error-message" class="text-danger">
+                                        <div id="success-message"></div>
+                                        <div id="error-message" ></div>
+                                        {% comment %} <div id="success-message" class="text-success"></div>
+                                    <div id="error-message" class="text-danger"></div> {% endcomment %}
+                                        {% comment %} <div id="error-message" class="text-danger">
                                             {% if messages %}
                                                 <ul class="messages">
                                                     {% for message in messages %}
@@ -175,7 +180,7 @@
                                                     {% endfor %}
                                                 </ul>
                                             {% endif %}
-                                        </div>
+                                        </div> {% endcomment %}
                                     </div>
                                     <ul class="product-meta font-xs color-grey mt-50">
                                         <li class="mb-5">SKU: <a href="#">FWM15VKT</a></li>
@@ -384,6 +389,97 @@
                 zoomContainer.style.display = 'none';
             });
         });
+        // Add this part to update the cart button after image source update
+        updateAddToCartButton();
+    });
+
+    function updateAddToCartButton() {
+        var quantityInput = document.getElementById('productQty');
+        var addToCartBtn = document.getElementById('addToCartBtn');
+        var quantity = parseInt(quantityInput.value, 10);
+    
+        if (quantity > 0) {
+            // Quantity is positive, show the "Add to Cart" button
+            addToCartBtn.style.display = 'inline-block';
+            document.getElementById('error-message').innerText = '';  // Clear any previous error messages
+        } else {
+            // Quantity is not positive, hide the "Add to Cart" button and show an error message
+            addToCartBtn.style.display = 'none';
+            document.getElementById('error-message').innerText = 'Please enter a valid quantity.';
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function() {
+        $(".addtocart").click(function(event) {
+            event.preventDefault();
+
+            var itemId = $(this).data("item-id");
+            var quantity = $("#productQty").val(); // Get the quantity value
+            var productColor = $("#product-color1").val();
+
+            $.ajax({
+                type: 'POST',
+                url: '/add_to_cart/',
+                data: {
+                    item_id: itemId,
+                    quantity: quantity,
+                    product_color: productColor, 
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log("AJAX Request Success");
+
+                    var cartCountElement = $(".cart-count");
+                    cartCountElement.text(response.cart_count);
+                    cartCountElement.attr("data-cart-count", response.cart_count);
+
+                   
+                    // Clear previous messages
+                    $("#success-message").empty().hide();
+                    $("#error-message").empty().hide();
+
+                    if (response.status === 'success') {
+                        // Update success message
+                        $("#success-message").text(response.message).show();;
+                    } else {
+                        // Update error message
+                        $("#error-message").text(response.message).show();;
+                    }
+                    
+                     
+                },
+                error: function(error) {
+                    console.error('Error during AJAX request:', error);
+                    console.log("AJAX Request Error");
+                    $(".messages").show();
+                    $(".messages").text('Error during AJAX request. Please try again.');
+                }
+            });
+        });
+    });
+</script>
+
+
+{% comment %} <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var thumbnails = document.querySelectorAll('.thumbnail-image');
+        var zoomContainer = document.getElementById('zoomContainer');
+        var zoomedImage = document.getElementById('zoomedImage');
+
+        thumbnails.forEach(function(thumbnail) {
+            thumbnail.addEventListener('mouseenter', function() {
+                var newImageSource = thumbnail.getAttribute('data-image');
+                zoomedImage.src = newImageSource;
+                zoomContainer.style.display = 'block';
+            });
+
+            thumbnail.addEventListener('mouseleave', function() {
+                zoomContainer.style.display = 'none';
+            });
+        });
     });
 
     function updateAddToCartButton() {
@@ -403,6 +499,66 @@
     }
 </script>
 <script>
+    var successMessage = "";
+    var errorMessage = "";
+
+    $(document).ready(function() {
+      $(".addtocart").click(function(event) {
+        event.preventDefault();
+    
+        var itemId = $(this).data("item-id");
+        var quantity = $("#productQty").val(); // Get the quantity value
+        var productColor = $("#product-color1").val()
+
+        $.ajax({
+          type: 'POST', // or 'GET' depending on your server-side implementation
+          url: '/add_to_cart/', // Replace with the actual server endpoint
+          data: {
+            item_id: itemId,
+            quantity: quantity, // Pass the quantity value
+            product_color: productColor, 
+            csrfmiddlewaretoken: "{{ csrf_token }}"
+        },
+        dataType: 'json',
+        success: function(response) {
+            var cartCountElement = $(".cart-count");
+            cartCountElement.text(response.cart_count);
+            cartCountElement.attr("data-cart-count", response.cart_count);
+            
+            $(".messages").show();
+            
+            // Clear previous messages
+            $(".messages").text(''); // Clear success message
+         
+            if (response.status === 'success') {
+                // Update success message
+                successMessage = response.message;
+            } else {
+                // Update error message
+                errorMessage = response.message;
+            }
+
+        },
+        error: function(error) {
+            console.error('Error during AJAX request:', error);
+            $(".messages").text('Error during AJAX request. Please try again.');
+        }
+        });
+      });
+    });
+    $(document).ready(function() {
+        // Check if messages are set and display them
+        if (successMessage) {
+          $(".messages").show();
+          $(".messages").text(successMessage);
+        } else if (errorMessage) {
+          $(".messages").show();
+          $(".messages").text(errorMessage);
+        }
+      });
+  </script> {% endcomment %}
+
+{% comment %} <script>
         $(document).ready(function() {
           $(".addtocart").click(function(event) {
             event.preventDefault();
@@ -422,24 +578,29 @@
             },
             dataType: 'json',
             success: function(response) {
-                if (response.status === 'success') {
-                    // Update cart count in the navigation bar
-                    var cartCountElement = $(".cart-count");
-                    cartCountElement.text(response.cart_count);
-                    cartCountElement.attr("data-cart-count", response.cart_count);
+                var cartCountElement = $(".cart-count");
+                cartCountElement.text(response.cart_count);
+                cartCountElement.attr("data-cart-count", response.cart_count);
 
-                    // Clear previous messages
-                    $(".messages ul").empty();
+                // Clear previous messages
+                $("#success-message").text(''); // Clear success message
+                $("#error-message").text('');   // Clear error message
+
+                if (response.status === 'success') {
+                    // Update success message
+                    $("#success-message").text('Product added to cart successfully');
                 } else {
+                    // Update error message
                     $("#error-message").text(response.message);
                 }
 
             },
             error: function(error) {
                 console.error('Error during AJAX request:', error);
+                $("#error-message").text('Error during AJAX request. Please try again.');
             }
             });
           });
         });
-      </script>
+      </script> {% endcomment %}
 {% endblock %}
