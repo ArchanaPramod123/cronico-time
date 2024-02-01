@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-+*4eac=!%n$r$$a!nh7maphw!7#mg*z6!w)akhf$n9#w$oxmkd
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -80,9 +80,9 @@ WSGI_APPLICATION = 'project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME':'cro',
-        'USER': 'cro',
-        'PASSWORD':'cro',
+        'NAME':'time',
+        'USER': 'time',
+        'PASSWORD':'time',
         'HOST':'localhost',
         'POST':'',
 
@@ -129,7 +129,7 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS=[
     BASE_DIR/ 'static'
 ]
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL='/media/'
 MEDIA_ROOT=BASE_DIR/'media'
 

@@ -78,7 +78,7 @@ def checkout(request):
         
         elif address_form.is_valid():
             address_instance = address_form.save(commit=False)
-            address_instance.user = request.user
+            address_instance.users = request.user
             address_instance.save()
 
             # Update the address for all CartItems in the user's cart
