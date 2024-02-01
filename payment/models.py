@@ -67,7 +67,6 @@ class Payments(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        # return f"{self.user.name}--{self.payment_method}"
         return self.user.first_name
     
 class CartOrder(models.Model):
@@ -88,7 +87,6 @@ class CartOrder(models.Model):
     status=models.CharField(max_length=10, choices=STATUS, default='New')
     ip =  models.CharField(blank=True,max_length=20)
     is_ordered=models.BooleanField(default=True)
-    # created_at = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(default=timezone.now, editable=True)
     updated_at=models.DateTimeField(auto_now=True)
     selected_address = models.ForeignKey(Address, on_delete=models.SET_NULL, null=True, blank=True)

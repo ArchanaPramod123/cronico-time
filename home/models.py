@@ -5,8 +5,6 @@ from django.utils.safestring import mark_safe
 from django.utils import timezone
 
 
-# from .views import 
-
 
 # Create your models here.
 
@@ -109,9 +107,6 @@ class Color(models.Model):
 class Product(models.Model):
     product_name = models.CharField(max_length=255)
     description = models.TextField(null=True)
-    # price = models.DecimalField(max_digits=8, decimal_places=2, default=0)
-    # offer_price = models.DecimalField(
-    #     max_digits=8, decimal_places=2, default=0)
     is_available=models.BooleanField(default=True)
     brand = models.ForeignKey('Brand', on_delete=models.CASCADE)
     category = models.ForeignKey('category', on_delete=models.CASCADE)

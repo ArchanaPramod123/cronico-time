@@ -155,7 +155,7 @@
                                     {% comment %} <div class="bt-1 border-color-1 mt-30 mb-30"></div> {% endcomment %}
                                     <div class="detail-extralink">
                                         
-                                        <input type="number" value="1" class="form-control" id="productQty" min="1" oninput="updateAddToCartButton()" name="quantity"/>
+                                        <input type="number" value="1" class="form-control" id="productQty" min="1" oninput="updateAddToCartButton()" name="quantity" />
                                         <div class="input-group-append">
                                         <input type="hidden" class="product-image-one" value="{{product.productattribute_set.first.image.url}}"/>
                                         <input type="hidden" class="product-id" value="{{product.id}}"/>
@@ -166,7 +166,13 @@
                                         {% comment %} <button class="button button-add-to-cart" id="addToCartBtn" type="button" onclick="addToCart()">Add To Cart</button>
                                         {% endcomment %}
                                         <button type="submit" class="addtocart" data-item-id="{{ product.id }}">Add To Cart</button>
+                                        
                                     </form>
+                                        </div>
+                                        <div class="product-extra-link2">
+                                          
+                                            <a aria-label="Add To Wishlist" class="action-btn hover-up" href="{% url 'add_wishlist' product.id%}"><i class="fi-rs-heart"></i></a>
+
                                         </div>
                                         <div id="success-message"></div>
                                         <div id="error-message" ></div>
@@ -401,11 +407,12 @@
         if (quantity > 0) {
             // Quantity is positive, show the "Add to Cart" button
             addToCartBtn.style.display = 'inline-block';
-            document.getElementById('error-message').innerText = '';  // Clear any previous error messages
+            document.getElementById('error-message').innerText = '';  // Clear any previous error messages/ Clear any previous error messages
         } else {
             // Quantity is not positive, hide the "Add to Cart" button and show an error message
-            addToCartBtn.style.display = 'none';
-            document.getElementById('error-message').innerText = 'Please enter a valid quantity.';
+            quantityInput.value = 1;
+            addToCartBtn.style.display = 'inline-block';
+            document.getElementById('error-message').innerText = '';
         }
     }
 </script>

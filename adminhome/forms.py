@@ -48,7 +48,6 @@ class CategoryOfferForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CategoryOfferForm, self).__init__(*args, **kwargs)
-        # Limit the choices for the 'category' field to available categories
         self.fields['category'].queryset = category.objects.all()
         
         
