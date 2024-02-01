@@ -253,6 +253,29 @@
   </script>
   
 
+
+
+
+  <!-- Add this script at the end of checkout.html and payment.html -->
+<script>
+    if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
+
+    // Optional: Disable the form submit button after submission
+    document.addEventListener('DOMContentLoaded', function () {
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function () {
+                var submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+            });
+        }
+    });
+</script>
+
   
 
     

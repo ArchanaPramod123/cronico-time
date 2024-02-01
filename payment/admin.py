@@ -15,12 +15,6 @@ class UserWallet(admin.ModelAdmin):
 class UserWalletHistory(admin.ModelAdmin):
     list_display=('wallet','type','created_at','amount','reason')
     search_fields=('Walet',)
-# class CartOrderItemsAdmin(admin.ModelAdmin):
-#     list_display=['invoice_no','item','image_tag','qty','price','total']
-
-# Register your models here.
-
-
 
 
 admin.site.register(Address,AddressAdmin)
@@ -30,4 +24,3 @@ admin.site.register(Payments,PaymentsAdmin)
 admin.site.register(ProductOrder,ProductOrderAdmin)
 admin.site.register(Wallet,UserWallet)
 admin.site.register(WalletHistory,UserWalletHistory)
-# admin.site.register(CartOrderItems,CartOrderItemsAdmin)

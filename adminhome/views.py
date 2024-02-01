@@ -17,7 +17,7 @@ from .forms import OrderForm
 from django.db.models import Count
 from django.db.models.functions import TruncDate,TruncMonth, TruncYear
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_control,never_cache
 from .models import ProductOffer,CategoryOffer,Banner,Coupon
 from .forms import ProductOfferForm,CategoryOfferForm,BannerForm,CouponForm
 from django.forms.models import inlineformset_factory
@@ -45,7 +45,7 @@ def admin_logout(request):
     return render(request,'adminhome/adminlogin.html')
 
 #========================================== admin index page ====================================================================================================================================================
-
+@never_cache
 @login_required(login_url='admin_login')
 @cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def admin_index(request):
@@ -94,8 +94,7 @@ def admin_index(request):
     
     monthly_order_counts = (
         CartOrder.objects
-        .filter(created_at__range=(start_date, end_date)) 
-        # .filter(created_at__year=datetime.now().year)  
+        .filter(created_at__range=(start_date, end_date))   
         .annotate(month=TruncMonth('created_at'))
         .values('month')
         .annotate(order_count=Count('id'))
@@ -103,9 +102,6 @@ def admin_index(request):
     )
     monthlyDates = [entry['month'].strftime('%Y-%m') for entry in monthly_order_counts]
     monthlyCounts = [entry['order_count'] for entry in monthly_order_counts]
-    print("monthlllllllllllll:",monthlyDates)
-    print('mmmmmmmmmmmmmmmmmmm:',monthlyCounts)
-
     
     yearly_order_counts = (
         CartOrder.objects
@@ -120,7 +116,6 @@ def admin_index(request):
     statuses = ['Delivered','Paid','Pending', 'New', 'Conformed', 'Cancelled', 'Return','Shipped']
     order_counts = [CartOrder.objects.filter(status=status).count() for status in statuses]
 
-    
     context={
         'product_count':product_count,
         'category_count':category_count,
@@ -349,7 +344,6 @@ def admin_product_edit(request, id):
             product_form.save()
             formset.save()
 
-            # Handle deletion of images
             for form in formset.deleted_forms:
                 instance = form.instance
                 if instance.id:
@@ -532,8 +526,8 @@ def orderitems(request, order_number):
     }
     return render(request, 'adminhome/order_items.html', context)
 
+@login_required(login_url='admin_login')
 def cancell_order(request, order_number):
-    print("cancelllllllllllllllll")
     if not request.user.is_superadmin:
         return redirect('admin_login')
 
@@ -546,7 +540,6 @@ def cancell_order(request, order_number):
     if order.status == 'Cancelled':
         messages.warning(request, f"Order with ID {order_number} is already cancelled.")
     else:
-        print("cancelllllllllllllllll111111111111111111111111111111")
         order.status = 'Cancelled'
         order.save()
 
@@ -554,13 +547,10 @@ def cancell_order(request, order_number):
 
         if order.payment.payment_method in allowed_payment_methods:
             with transaction.atomic():
-                # Retrieve the Wallet associated with the user
                 user_wallet = order.user.wallet if hasattr(order.user, 'wallet') else None
 
                 if order.payment.payment_method == 'Razorpay':
-                    # Handle Razorpay order cancellation and refund
                     if user_wallet:
-                        print("Wallletttttttttttttttttttttttt")
                         user_wallet.balance += order.order_total
                         user_wallet.save()
 
@@ -572,9 +562,7 @@ def cancell_order(request, order_number):
                             reason='Admin Cancellation'
                         )
                 elif order.payment.payment_method == 'Wallet':
-                    # Handle Wallet order cancellation and wallet update
                     if user_wallet:
-                        print("Wallletttttttttttttttttttttttt")
                         user_wallet.balance += order.order_total
                         user_wallet.save()
 
@@ -586,9 +574,7 @@ def cancell_order(request, order_number):
                             reason='Admin Cancellation'
                         )
 
-                # Update product stock
                 for order_item in order.productorder_set.all():
-                    print("cancelllll333333333333333333333333333333333333333333333")
                     product_attribute = order_item.variations
                     product_attribute.stock += order_item.quantity
                     product_attribute.save()
@@ -598,7 +584,7 @@ def cancell_order(request, order_number):
     return redirect('order')
 
 #=========================================================== sales_report ==================================================================================================================================================
-
+@login_required(login_url='admin_login')
 def sales_report(request):
     if not request.user.is_superadmin:
         return redirect(admin_login)
@@ -631,7 +617,7 @@ def sales_report(request):
     return render(request,'adminhome/sales_report.html',context)
 
 #============================================= add and delete the product offer ==================================================================================================================================================================
-
+@login_required(login_url='admin_login')
 def product_offers(request):
     offers=ProductOffer.objects.all()
     try:
@@ -652,7 +638,7 @@ def product_offers(request):
     }
     return render(request, 'adminhome/product_offers.html',context)
 
-
+@login_required(login_url='admin_login')
 def edit_product_offers(request, id):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -698,7 +684,7 @@ def edit_product_offers(request, id):
     
     return render(request, 'adminhome/edit_product_offers.html', {'offer_discount': offer_discount})
         
-
+@login_required(login_url='admin_login')
 def create_product_offer(request):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -730,9 +716,7 @@ def create_product_offer(request):
 
     return render(request, 'adminhome/create-product-offers.html', {'form': form})
 
-
-@login_required(login_url='admin_login')        
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url='admin_login')
 def delete_product_offer(request,id):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -744,8 +728,7 @@ def delete_product_offer(request,id):
     messages.warning(request,"Offer has been deleted successfully")
     return redirect('product-offers')
 
-
-# Category Offers
+@login_required(login_url='admin_login')
 def category_offers(request):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -774,8 +757,7 @@ def category_offers(request):
     }
     return render(request, 'adminhome/category_offers.html', context)
 
-
-
+@login_required(login_url='admin_login')
 def edit_category_offers(request, id):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -822,8 +804,7 @@ def edit_category_offers(request, id):
         return redirect('category-offers')
     return render(request,'adminhome/edit_category_offers.html', {'offer_discount': offer_discount})
 
-
-
+@login_required(login_url='admin_login')
 def create_category_offer(request):
     if request.method == 'POST':
         form = CategoryOfferForm(request.POST)
@@ -853,12 +834,9 @@ def create_category_offer(request):
                     return redirect('category-offers')  
     else:
         form = CategoryOfferForm()
-
     return render(request, 'adminhome/create_category_offer.html', {'form': form})
 
-
-@login_required(login_url='admin_login')        
-@cache_control(no_cache=True, must_revalidate=True, no_store=True)
+@login_required(login_url='admin_login')
 def delete_category_offer(request,id):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -871,7 +849,7 @@ def delete_category_offer(request,id):
 
     return redirect('category-offers')
 #================================================banner==============================================================================================================================================================================================
-
+@login_required(login_url='admin_login')
 def admin_banner(request):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -883,7 +861,7 @@ def admin_banner(request):
 
     return render(request, 'adminhome/admin_banner.html',{'banners':banners})
 
-
+@login_required(login_url='admin_login')
 def create_banner(request):
     if not request.user.is_superadmin:
         redirect('admin_login')
@@ -897,6 +875,7 @@ def create_banner(request):
 
     return render(request,'adminhome/banner_create.html',{'form':form})
 
+@login_required(login_url='admin_login')
 def update_banner(request, id):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -907,7 +886,6 @@ def update_banner(request, id):
         if form.is_valid:
             form.save()
             return redirect('admin_banner')
-        
     else:
         form = BannerForm(instance=banner)
     context={
@@ -916,6 +894,7 @@ def update_banner(request, id):
     }
     return render(request, 'adminhome/banner_update.html',context)
 
+@login_required(login_url='admin_login')
 def delete_banner(request, id):
     if not request.user.is_superadmin:
         redirect('admin_login')
@@ -930,12 +909,14 @@ def delete_banner(request, id):
 
 
 #================================coupone==================================================================================================================================================================================================================================================
-
+@login_required(login_url='admin_login')
 def admin_coupon(request):
     if not request.user.is_superadmin:
         return redirect('admin_login')
     coupon = Coupon.objects.all()
     return render(request, 'adminhome/admin_coupon.html',{'coupon':coupon})
+
+@login_required(login_url='admin_login')
 def create_coupon(request):
     if not request.user.is_superadmin:
         return redirect('admin_login')
@@ -946,12 +927,10 @@ def create_coupon(request):
         active_date = request.POST['active_date']
         expiry_date = request.POST['expiry_date']
 
-        # Check if active_date is not greater than expiry_date
         if active_date > expiry_date:
             messages.error(request, 'Active date should not be greater than expiry date')
             return render(request, 'adminhome/create_coupon.html')
 
-        # Check if the coupon with the same code already exists
         if Coupon.objects.filter(code=code).exists():
             messages.error(request, f'Coupon with code {code} already exists')
             return render(request, 'adminhome/create_coupon.html')
@@ -969,7 +948,7 @@ def create_coupon(request):
 
     return render(request, 'adminhome/create_coupon.html')
 
-
+@login_required(login_url='admin_login')
 @login_required(login_url='admin_login')
 def edit_coupon(request,id):
     if not request.user.is_superadmin:
@@ -984,8 +963,6 @@ def edit_coupon(request,id):
         active_date = request.POST['active_date']
         expiry_date = request.POST['expiry_date']
         
-
-        # Check if active_date is not greater than expiry_date
         if active_date > expiry_date:
             messages.error(request, 'Active date should not be greater than expiry date')
             return render(request, 'admintemp/create-coupon.html')
@@ -998,9 +975,6 @@ def edit_coupon(request,id):
         coupon_code.save()
         messages.success(request, 'Coupon Updated successfully')
         return redirect('admin_coupon')
-    
-        
-    
     return render (request, 'adminhome/update_coupon.html',{'coupon_code':coupon_code})
 
 
@@ -1017,10 +991,6 @@ def delete_coupon(request,id):
     coupon.delete()
     messages.warning(request,"Coupon has been deleted successfully")
 
-    return redirect('admin_coupon')
-
-
-
-        
+    return redirect('admin_coupon')  
 #================================================================ THE END ======================================================================================================================================================================================================
 
